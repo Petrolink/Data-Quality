@@ -1,0 +1,21 @@
+#Enter Configurations for curve values you would like to analyze
+#TODO Update Curve_configs to have Logs with mutable names.
+Curve_configs:
+  BitDepth:
+    Dtype: float
+    upLim: 2000.0
+    lowLim: 1000.0
+    freqTol: 1.1
+  Block Position:
+    Dtype: float
+    upLim: 100.0
+    lowLim: 20.0
+    freqTol: 1.1
+General_configs:
+  CalcConsistency: True
+  freqTol: 1.1
+Accuracy_configs:
+  Curves:
+    - BitDepth
+    - Block Position
+  Tolerance: 1.1
