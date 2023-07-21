@@ -1,21 +1,31 @@
 #Enter Configurations for curve values you would like to analyze
-#TODO Update Curve_configs to have Logs with mutable names.
+#TODO Add units config and explain in read me that the runner assumes that the units are configed and not written into title.
 Curve_configs:
-  BitDepth:
+  BDEP:
     Dtype: float
-    upLim: 2000.0
-    lowLim: 1000.0
-    freqTol: 1.1
-  Block Position:
+    upLim: 20001.0
+    lowLim: -0.0001
+  BHT:
     Dtype: float
     upLim: 100.0
-    lowLim: 20.0
-    freqTol: 1.1
+    lowLim: -0.0001
+  CTOR:
+    Dtype: float
+    upLim: 100.0
+    lowLim: -0.0001
+  DEPT:
+    Dtype: float
+    upLim: 20000.0
+    lowLim: -0.0001
+  RPM:
+    Dtype: float
+    upLim: 300.0
+    lowLim: -0.0001
 General_configs:
   CalcConsistency: True
   freqTol: 1.1
 Accuracy_configs:
   Curves:
-    - BitDepth
-    - Block Position
+    BDEP: BHT
+    BHT: BDEP
   Tolerance: 1.1

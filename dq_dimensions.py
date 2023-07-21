@@ -1,5 +1,6 @@
 import math
 from datetime import datetime, timedelta
+#TODO add this library to pip when completed.
 
 def Validity(cValue:float, upLim:float, lowLim:float):
     """Function that determines the valididty of the current sample/row by checking if the curve value passed is within an upper and lower limit
@@ -99,7 +100,7 @@ def Consistency(xCurve:float, yCurve:float):
     
     Args: 
         xCurve (float): curve value from a log reffered to as x.
-        yCurve (float): curve value from a log reffered to as y.
+        yCurve (float): curve value from a log reffered to as y that is used to check the consistency of log x.
     Raises:
         Exception: An Exception is raised if both arguments are not of type float.
     Returns:

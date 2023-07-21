@@ -43,9 +43,11 @@ def get_Configs(configType):
         case 'general':
             if len(configs['General_configs']) == 0:
                 raise Exception('Excpecting input for General_configs in config.yaml')
+            return configs['General_configs']
         case 'accuracy':
-            if len(configs['Curve_conifgs']) == 0:
+            if len(configs['Accuracy_configs']) == 0:
                 raise Exception('Expecting input for Accuracy_conifgs in config.yaml')
+            return configs['Accuracy_configs']
         case default:
             raise Exception('The value passed was an invalid config type key. Please pass a valid key: "curve"')
 
@@ -68,7 +70,7 @@ def fill_dataframe(csvfile):
         raise Exception("Expecting .csv file format")
     df = pd.read_csv(os.path.join(sys.path[0], csvfile))
     if df.empty:
-        raise Exception("Expeccting file with data")
+        raise Exception("Expecting file with data")
     return df
 
 def createDimensions(dataframe):
@@ -78,34 +80,56 @@ def createDimensions(dataframe):
     Raises:
         TODO: Add exceptions and Test
     """
+    consCheck = fill_dataframe('consistency_check.csv')
     CurveConfigs = get_Configs('curve')
+    GenConfigs = get_Configs('general')
+    AccConfigs = get_Configs('accuracy')
+    AccCurves = AccConfigs.get('Curves')
     CurveNames = get_Configs('curve').keys()
+    AllFreq = pd.DataFrame()
+    comp = []
     for column in dataframe:
         colNum = 0
         if column in CurveNames:
             cConfig = CurveConfigs[column]
             val = []
             freq = []
-            uniq = []
+            uniq = [] 
             cons = []
+            acc = []
             colNum = dataframe.columns.get_loc(column)
             index = 0
             for i in dataframe[column]:
                 val.append(dq.Validity(i, cConfig.get('upLim'), cConfig.get('lowLim')))
+                cons.append(dq.Consistency(i, consCheck.iloc[index][column]))
                 if index == 0:
+                    if column in AccCurves.keys():
+                        paired = AccCurves[column]
+                        acc.append(dq.Accuracy(i, None, dataframe.iloc[index][paired], None))
                     #First sample/row scenarios.
-                    freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), None, cConfig.get('freqTol')))
+                    freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), None, GenConfigs.get('freqTol')))
                     uniq.append(dq.Uniqueness(i))
                 else:
-                    freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), cConfig.get('freqTol')))
+                    if column in AccCurves.keys():
+                        paired = AccCurves[column]
+                        acc.append(dq.Accuracy(i, prev, dataframe.iloc[index][paired], dataframe.iloc[index-1][paired]))
+                    freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), GenConfigs.get('freqTol')))
                     uniq.append(dq.Uniqueness(i, prev))
                 prev = i
                 index += 1
             # these inserts will be put into a function here for testing ATM.
+            count = 0
+            AllFreq.insert(count, "Frequency", freq, True)
+            count += 1
             dataframe.insert(colNum+1, "Validity", val, True)
             dataframe.insert(colNum+2, "Frequency", freq, True)
-            dataframe.insert(colNum+3, "Uniqueness", uniq, True)
-
+            dataframe.insert(colNum+3, "Consistency", cons, True)
+            dataframe.insert(colNum+4, "Uniqueness", uniq, True)
+            if column in AccCurves.keys():
+                dataframe.insert(colNum+5, "Accuracy", acc, True)
+    for idx, row, in AllFreq.iterrows():
+        comp.append(dq.Completeness(row.tolist()))
+    dataframe['Completeness'] = comp
 
 def main():
     data = fill_dataframe('example.csv')
@@ -113,7 +137,7 @@ def main():
     print(data)
     createDimensions(data)
     #output data
-    print(data)
+    data.to_csv("output.csv")
 
 if __name__ == "__main__":
     main()
