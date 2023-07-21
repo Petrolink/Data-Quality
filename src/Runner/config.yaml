@@ -22,6 +22,8 @@ Curve_configs:
     upLim: 300.0
     lowLim: -0.0001
 General_configs:
+  DataFile: 'example.csv'
+  CheckFile: 'consistency_check.csv'
   CalcConsistency: True
   freqTol: 1.1
 Accuracy_configs:

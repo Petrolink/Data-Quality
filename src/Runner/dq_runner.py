@@ -1,9 +1,13 @@
 import os
-import sys
 import pandas as pd
 import yaml
 from datetime import datetime
+# Temporary fix that allows dimensions lib to be imported from other dir while the lib is not registered with pip
+# According to https://www.geeksforgeeks.org/python-import-module-outside-directory/
+import sys
+sys.path.append(os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'Library')))
 import dq_dimensions as dq
+
 
 def yaml_loader(filepath):
     """Function that Loads a yaml file"""
@@ -52,10 +56,10 @@ def get_Configs(configType):
             raise Exception('The value passed was an invalid config type key. Please pass a valid key: "curve"')
 
 
-def fill_dataframe(csvfile):
+def fill_dataframe(itype):
     """Reads in a .csv file and returns a mutable dataframe filled with .csv data.
     Args: 
-        csvfile (str): The file path to log.csv
+        itype (str): An input type key word (input or check)
     Raises:
         Exception: An Exception occurs when the file path parameter is an empty string.
         Exception: An Exception occurs when the input file is not of type .csv.
@@ -63,12 +67,21 @@ def fill_dataframe(csvfile):
     Returns:
         df (pd): Pandas dataframe with input .csv data.
     """
+    #TODO finish updating file structure/loading and update unittests on Monday
+    configs = get_Configs('general')
+    if len(itype) == 0:
+        raise Exception('Please provide a valid input type key-word ("input" or "check"), empty strings will not be accepted.')
+    match(str.lower(itype)):
+        case 'input':
+            if not configs.get('DataFile').endswith('csv'):
+                raise Exception('Expecting a .csv file name for the DataFile config in General_configs.')
+            csvfile = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'input', configs.get('Datafile')))
+        case 'check':
+            if not configs.get('CheckFile').endswith('csv'):
+                raise Exception('Expecting a .csv file name for the CheckFile config in General_configs.')
+            csvfile = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'input', configs.get('CheckFile')))
     df = pd.DataFrame()
-    if len(csvfile) == 0:
-        raise Exception('Please provide a valid path to fill_dataframe(), empty strings will not be accepted.')
-    if not csvfile.endswith('.csv'):
-        raise Exception("Expecting .csv file format")
-    df = pd.read_csv(os.path.join(sys.path[0], csvfile))
+    df = pd.read_csv(csvfile)
     if df.empty:
         raise Exception("Expecting file with data")
     return df
