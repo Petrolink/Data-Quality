@@ -75,11 +75,13 @@ def fill_dataframe(itype):
         case 'input':
             if not configs.get('DataFile').endswith('csv'):
                 raise Exception('Expecting a .csv file name for the DataFile config in General_configs.')
-            csvfile = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'input', configs.get('Datafile')))
+            csvfile = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'input', configs.get('DataFile')))
         case 'check':
             if not configs.get('CheckFile').endswith('csv'):
                 raise Exception('Expecting a .csv file name for the CheckFile config in General_configs.')
             csvfile = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'input', configs.get('CheckFile')))
+        case default:
+            raise Exception('The value passed is an invalid input type key. Please Specify "input" or "check".')
     df = pd.DataFrame()
     df = pd.read_csv(csvfile)
     if df.empty:
@@ -93,7 +95,7 @@ def createDimensions(dataframe):
     Raises:
         TODO: Add exceptions and Test
     """
-    consCheck = fill_dataframe('consistency_check.csv')
+    consCheck = fill_dataframe('check')
     CurveConfigs = get_Configs('curve')
     GenConfigs = get_Configs('general')
     AccConfigs = get_Configs('accuracy')
@@ -145,7 +147,7 @@ def createDimensions(dataframe):
     dataframe['Completeness'] = comp
 
 def main():
-    data = fill_dataframe('example.csv')
+    data = fill_dataframe('input')
     # data Original data fed in as input 
     print(data)
     createDimensions(data)

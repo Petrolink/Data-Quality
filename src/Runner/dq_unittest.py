@@ -1,6 +1,11 @@
 import unittest
 import math
 from datetime import datetime
+# Temporary fix that allows dimensions lib to be imported from other dir while the lib is not registered with pip
+# According to https://www.geeksforgeeks.org/python-import-module-outside-directory/
+import sys
+import os
+sys.path.append(os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'Library')))
 import dq_dimensions
 import dq_runner
 
