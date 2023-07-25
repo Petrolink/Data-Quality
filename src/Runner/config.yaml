@@ -31,3 +31,10 @@ Accuracy_configs:
     BDEP: BHT
     BHT: BDEP
   Tolerance: 1.1
+Dimension_weights:
+  Validity: 35
+  Frequency: 25
+  Consistency: 5
+  Completeness: 5
+  Uniqueness: 5
+  Accuracy: 25

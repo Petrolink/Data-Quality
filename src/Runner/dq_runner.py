@@ -52,6 +52,10 @@ def get_Configs(configType):
             if len(configs['Accuracy_configs']) == 0:
                 raise Exception('Expecting input for Accuracy_conifgs in config.yaml')
             return configs['Accuracy_configs']
+        case 'dimensions':
+            if len(configs['Dimension_weights']) == 0:
+                raise Exception('Expecting input for Dimension_weights in config.yaml')
+            return configs['Dimension_weights']
         case default:
             raise Exception('The value passed was an invalid config type key. Please pass a valid key: "curve"')
 
@@ -95,17 +99,23 @@ def createDimensions(dataframe):
     Raises:
         TODO: Add exceptions and Test
     """
-    consCheck = fill_dataframe('check')
+    # TODO Break this function up into multiple, too much going on in here.
     CurveConfigs = get_Configs('curve')
     GenConfigs = get_Configs('general')
+    Ccheck = False
+    if GenConfigs.get('CalcConsistency') is True: 
+        consCheck = fill_dataframe('check')
+        Ccheck = True
     AccConfigs = get_Configs('accuracy')
     AccCurves = AccConfigs.get('Curves')
     CurveNames = get_Configs('curve').keys()
     AllFreq = pd.DataFrame()
     comp = []
+    numcurv = 0
     for column in dataframe:
         colNum = 0
         if column in CurveNames:
+            numcurv += 1
             cConfig = CurveConfigs[column]
             val = []
             freq = []
@@ -116,7 +126,8 @@ def createDimensions(dataframe):
             index = 0
             for i in dataframe[column]:
                 val.append(dq.Validity(i, cConfig.get('upLim'), cConfig.get('lowLim')))
-                cons.append(dq.Consistency(i, consCheck.iloc[index][column]))
+                if Ccheck:
+                    cons.append(dq.Consistency(i, consCheck.iloc[index][column]))
                 if index == 0:
                     if column in AccCurves.keys():
                         paired = AccCurves[column]
@@ -136,23 +147,117 @@ def createDimensions(dataframe):
             count = 0
             AllFreq.insert(count, "Frequency", freq, True)
             count += 1
-            dataframe.insert(colNum+1, "Validity", val, True)
-            dataframe.insert(colNum+2, "Frequency", freq, True)
-            dataframe.insert(colNum+3, "Consistency", cons, True)
-            dataframe.insert(colNum+4, "Uniqueness", uniq, True)
-            if column in AccCurves.keys():
-                dataframe.insert(colNum+5, "Accuracy", acc, True)
+            dataframe.insert(colNum+1, "Validity_"+str(numcurv), val, True)
+            dataframe.insert(colNum+2, "Frequency_"+str(numcurv), freq, True)
+            if Ccheck:
+                dataframe.insert(colNum+3, "Consistency_"+str(numcurv), cons, True)
+                dataframe.insert(colNum+4, "Uniqueness_"+str(numcurv), uniq, True)
+                if column in AccCurves.keys():
+                    dataframe.insert(colNum+5, "Accuracy_"+str(numcurv), acc, True)
+            else:
+                dataframe.insert(colNum+3, "Uniqueness_"+str(numcurv), uniq, True)
+                if column in AccCurves.keys():
+                    dataframe.insert(colNum+4, "Accuracy_"+str(numcurv), acc, True)
     for idx, row, in AllFreq.iterrows():
         comp.append(dq.Completeness(row.tolist()))
     dataframe['Completeness'] = comp
 
-def main():
-    data = fill_dataframe('input')
-    # data Original data fed in as input 
-    print(data)
-    createDimensions(data)
-    #output data
-    data.to_csv("output.csv")
+def calcScores(dataframe:pd):
+    """Function that calculates the Dimension scores for each curve using the dimScore function in the dq_dimensions lib.
+    Args: 
+        dataframe (pd): Pandas dataframe filled with all dimension data for each curve passed in as input.
+    Raises:
+        Exception: An exception is thrown when the argument passed is not a pandas dataframe.
+    Returns: 
+        scoreDf (pd): Pandas dataframe that includes the dimension scores for each curve.
+    """
+    CurveNames = get_Configs('curve').keys()
+    Dimensions = get_Configs('dimensions').keys()
+    scoreDf = pd.DataFrame()
+    for column in dataframe:
+        if column in CurveNames:
+            currCurve = column
+        colcheck = column.split("_")
+        if colcheck[0] in Dimensions:
+            score = [dq.dimScore(list(dataframe[column]))]
+            if colcheck[0] == 'Completeness':
+                scoreDf[colcheck[0]] = score
+            else:
+                scoreDf[currCurve + '_' + colcheck[0]] = score
+    return scoreDf
 
+def createOverall(dataframe:pd):
+    """Function that creates the overall aggregation output and calculates the overall scores for the input dataset using the OverallDim() function in the dq_dimensions lib.
+    
+    Args:
+        dataframe (pd): Pandas dataframe that includes the dimension scores for each curve.
+    Raises:
+        Exception: An Exception is raised if the argument passed is not a pandas dataframe.
+    Returns:
+    """
+    DQout = pd.DataFrame()
+    weights = get_Configs('dimensions')
+    vali = []
+    freq = []
+    cons = []
+    uniq = []
+    acc = [] 
+    
+    for column in dataframe:
+        if 'Validity' in column:
+            vali.append(float(dataframe.iloc[0][column]))
+        elif 'Frequency' in column: 
+            freq.append(float(dataframe.iloc[0][column]))
+        elif 'Consistency' in column: 
+            cons.append(float(dataframe.iloc[0][column]))
+        elif 'Uniqueness' in column:
+            uniq.append(float(dataframe.iloc[0][column]))
+        elif 'Accuracy' in column: 
+            acc.append(float(dataframe.iloc[0][column]))
+    
+    for config in weights:
+        arr = []
+        match(config):
+            case 'Validity':
+                arr = vali
+            case 'Frequency': 
+                arr = freq
+            case 'Consistency':
+                arr = cons
+            case 'Uniqueness': 
+                arr = uniq
+            case 'Accuracy':
+                arr = acc
+            case 'Completeness':
+                arr = arr
+        print(config)
+        print(arr)
+        if config == 'Completeness':
+            DQout.at['Score', config] = dataframe.iloc[0][config]
+        else:
+            DQout.at['Score', config] = dq.OverallDim(arr)
+        DQout.at['Weightage (%)', config] = weights.get(config)
+    return DQout
+    
+    
+
+
+def main():
+    print('Loading Input...')
+    data = fill_dataframe('input')
+    print('Done!')
+    print('Calculating and Recording Dimensions.')
+    createDimensions(data)
+    print('Done!')
+    print('Calculating Scores.')
+    datascores = calcScores(data)
+    print('Done!')
+    overall = createOverall(datascores)
+    #output data
+    data['Time'] = pd.to_datetime(data['Time'])
+    print(data['Time'].dtype)
+    data.to_csv("output.csv")
+    datascores.to_csv("scores.csv")
+    overall.to_csv("overall.csv")
 if __name__ == "__main__":
     main()

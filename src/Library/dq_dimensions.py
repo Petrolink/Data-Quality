@@ -2,6 +2,8 @@ import math
 from datetime import datetime, timedelta
 #TODO add this library to pip when completed.
 
+#Curve Level Functions
+
 def Validity(cValue:float, upLim:float, lowLim:float):
     """Function that determines the valididty of the current sample/row by checking if the curve value passed is within an upper and lower limit
 
@@ -140,12 +142,46 @@ def Accuracy(currBD=0.0, prevBD=0.0, currBH=0.0, prevBH=0.0, tol=0.0):
             return False
     return True
 
-def logwiseagg(dimValues):
+def dimScore(dim:list):
+    """Function that calculates the score of a curve's dimension.
+    Args:
+        dim (list): Dimension Column values generated using the dq_dimension curve level functions.
+    Raises:
+        Exception: An Exception is raised if any value in the dimension column passed is not a boolean or None value.
+        Exception: An Exception is raised if the argument passed is not a list.
+    Returns: 
+        score (int): Calculated score percentage of the dimension passed.
+    """
+    good = 0
+    good = dim.count(True)
+    score = (good/len(dim)) * 100
+    return score
+
+def Hourlyagg(dimValues, Time):
     """Function that calculates a logwise dimension using the dimension column passed as a list.
     Args:
         dimValues (list): Dimension column values generated using the dq_dimension curve level functions.
+        Time (list): Timestamp column values that align with each sample in dimValues.
     Raises:
         Exception: 
     Returns:
         Measure: The calculated 
     """
+
+def OverallDim(data: list):
+    """Function that calculates the overall Dimension for a dataset.
+    Args:
+        data (list): List containing all curve scores for a certain dimension
+    Raises:
+        Exception: An Exception is raised if the argument passed is not a list.
+        Exception: An Exception is raised if the contents of data are not all numerical.
+    Returns:
+        """
+    Overall = 0
+    for score in data: 
+        if type(score) is float or type(score) is int:
+            Overall += score
+        else:
+            print(type(score))
+            raise Exception('Please only pass lists with pure numerical data to OverallDim().')
+    return Overall/len(data)

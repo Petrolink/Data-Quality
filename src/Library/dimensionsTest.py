@@ -103,5 +103,27 @@ class Testdq_dimensions(unittest.TestCase):
         #Ensuring Accuracy() returns false when the differences between the two curves'values are not within the specified tolerance.
         self.assertFalse(dq_dimensions.Accuracy(11, 11.06, 11.06, 11.15, 0.01))
         
+    def testdimScore(self):
+        """Testing dimScore() Function in dq_dimensions that takes in a dimension column as an array and produces a raw score using the following formula: goodrows/totalrows * 100."""
+        #Ensuring dimScore() throws an Exception when passed anything that is not a list/array.
+        self.assertRaises(Exception, dq_dimensions.dimScore, True)
+        self.assertRaises(Exception, dq_dimensions.dimScore, 12.3)
+        self.assertRaises(Exception, dq_dimensions.dimScore, 'arr')
+        #Ensuring dimScore() throws an Exception when any of the values in the list/array passed are not booleans or None(Null).
+        badtest = [True, False, False, True, 'None']
+        self.assertRaises(Exception, dq_dimensions.dimScore, badtest)
+        #Ensuring dimScore() returns expected values following the formula: goodrows/totalrows * 100 
+        goodtest = [True, True, False, False, False, True, None, True, True, True]
+        self.assertEqual(dq_dimensions.dimScore(goodtest), 60)
+
+    def testOverallDim(self):
+        """Testing OverallDim() Funciton in dq_dimensions that takes in a list containing all curve scores for one dimension and returns the Overall Dimension Score."""
+        #Ensuring OverallDim() throws an Exception when passed anything that is not a list.
+        self.assertRaises(Exception, dq_dimensions.OverallDim, 'list')
+        self.assertRaises(Exception, dq_dimensions.OverallDim, 98.5)
+        #Ensuring OverallDim() thorws an Exception when passed a list with any non-numerical contents.
+        bad = [99.6, None, 99, False, 'not a num']
+        self.assertRaises(Exception, dq_dimensions.OverallDim, bad)
+
 if __name__ == "__main__":
     unittest.main()
