@@ -153,8 +153,12 @@ def dimScore(dim:list):
         score (int): Calculated score percentage of the dimension passed.
     """
     good = 0
-    good = dim.count(True)
-    score = (good/len(dim)) * 100
+    check =  all(isinstance(x, (bool, type(None))) for x in dim)
+    if check is True:
+        good = dim.count(True)
+        score = (good/len(dim)) * 100
+    else:
+        raise Exception('Please only provide a list with containing only boolean data to dimScore().')
     return score
 
 def Hourlyagg(dimValues, Time):
@@ -169,7 +173,7 @@ def Hourlyagg(dimValues, Time):
     """
 
 def OverallDim(data: list):
-    """Function that calculates the overall Dimension for a dataset.
+    """Function that calculates the overall score of a Dimension for a dataset.
     Args:
         data (list): List containing all curve scores for a certain dimension
     Raises:
@@ -182,6 +186,44 @@ def OverallDim(data: list):
         if type(score) is float or type(score) is int:
             Overall += score
         else:
-            print(type(score))
             raise Exception('Please only pass lists with pure numerical data to OverallDim().')
     return Overall/len(data)
+
+def calcWeight(score: float, weight: float):
+    """Function that calculates the weighted score of a dimension.
+    Args:
+        score (float): Dimension score
+        weight (float): Dimension weightage
+    Raises:
+        Exception: An exception is raised if the arguments passed are not numerical.
+    Returns:
+        wScore: The weighted dimension score.
+    """
+    if weight > 100:
+        raise Exception('Dimension Weights can only range from 0-100 as it is a percentage.')
+    wScore = score * (weight/100)
+    return wScore
+
+
+def OverallDQ(data: list):
+    """Funtion that calculates the overall Data Quality score of a dataset.
+    Args: 
+        data (list): List of weighted dimension scores
+    Raises: 
+        Exception: An Exception is raised if the argument passed is not a list.
+        Exception: An Exception is raised if the contents of data are not all numerical.
+        Exception: An Exception is raised if the sum of the contents of data is greater than 100.
+    Returns:
+        DQscore (float): Overall Data Quality Score.
+    """
+    DQscore = 0
+    check =  all(isinstance(x, (float, int)) for x in data)
+    if check:
+        for dim in data:
+            DQscore += dim
+        if DQscore > 100:
+            raise Exception('Please ensure the dimensions passed have been weighted, the sum of all weighted values should be <= 100. Sum Produced: ' + str(DQscore))
+    else:
+        raise Exception('Please only pass lists with pure numerical data to OverallDQ().')
+    return DQscore
+    

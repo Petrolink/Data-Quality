@@ -125,5 +125,33 @@ class Testdq_dimensions(unittest.TestCase):
         bad = [99.6, None, 99, False, 'not a num']
         self.assertRaises(Exception, dq_dimensions.OverallDim, bad)
 
+    def testcalcWeight(self):
+        """Testing calcWeight() Function in dq_dimensions that takes in a dimension score and a weight value and returns the weighted score."""
+        #Ensuring calcWeight() throws an Exception when passed anything that is non-numerical.
+        bad = [12, False, 12.3]
+        self.assertRaises(Exception, dq_dimensions.calcWeight, 'False', 12)
+        self.assertRaises(Exception, dq_dimensions.calcWeight, bad, 12.5)
+        #Ensuring calcWeight() throws an Exception when weight > 100
+        self.assertRaises(Exception, dq_dimensions.calcWeight, 12.5, 101)
+        #Ensuring calcWeight() returns expected output
+        self.assertEqual(dq_dimensions.calcWeight(93, 15), 13.95)
+        self.assertEqual(dq_dimensions.calcWeight(26, 5), 1.3)
+
+    def testOverallDQ(self):
+        """Testing OverallDQ() Function in dq_dimensions that takes in a list containing weighted dimension scores of a dataset and returns the Overall DQ Score of said dataset"""
+        #Ensuring OverallDQ() throws an Exception when passed an argument that is not a list.
+        self.assertRaises(Exception, dq_dimensions.OverallDQ, 12.5)
+        self.assertRaises(Exception, dq_dimensions.OverallDQ, False)
+        self.assertRaises(Exception, dq_dimensions.OverallDQ, 'Not a list')
+        #Ensuring OverallDQ() throws an Exception when any of the contents within the list passed are non-numerical.
+        bad = [99.6, None, 99, False, 'not a num']
+        self.assertRaises(Exception, dq_dimensions.OverallDQ, bad)
+        #Ensuring OverallDQ() throws an Exception when the sum of the data in the list passed is > 100.
+        greater = [20, 25, 25, 25, 20]
+        self.assertRaises(Exception, dq_dimensions.OverallDQ, greater)
+        #Ensuring OverallDQ returns Expected output.
+        testset = [15, 25.6, 12.45]
+        self.assertEqual(dq_dimensions.OverallDQ(testset), 53.05)
+
 if __name__ == "__main__":
     unittest.main()

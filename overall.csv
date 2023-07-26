@@ -1,3 +1,3 @@
-,Validity,Frequency,Consistency,Completeness,Uniqueness,Accuracy
-Score,100.0,99.98999899989998,100.0,99.98999899989998,17.803780378037803,76.12761276127613
-Weightage (%),35.0,25.0,5.0,5.0,5.0,25.0
+,Validity,Overall DQ Score,Frequency,Consistency,Completeness,Uniqueness,Accuracy
+Score (%),100.0,89.59949994999499,99.0,100.0,99.98999899989998,17.0,76.0
+Weightage (%),35.0,,25.0,5.0,5.0,5.0,25.0

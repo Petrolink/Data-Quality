@@ -194,6 +194,7 @@ def createOverall(dataframe:pd):
     Raises:
         Exception: An Exception is raised if the argument passed is not a pandas dataframe.
     Returns:
+        DQout (pd): Pandas dataframe that includes the overall dimension scores and their corresponding weights set by user in config.yaml
     """
     DQout = pd.DataFrame()
     weights = get_Configs('dimensions')
@@ -230,17 +231,30 @@ def createOverall(dataframe:pd):
                 arr = acc
             case 'Completeness':
                 arr = arr
-        print(config)
-        print(arr)
         if config == 'Completeness':
-            DQout.at['Score', config] = dataframe.iloc[0][config]
+            DQout.at['Score (%)', config] = dataframe.iloc[0][config]
         else:
-            DQout.at['Score', config] = dq.OverallDim(arr)
-        DQout.at['Weightage (%)', config] = weights.get(config)
+            DQout.at['Score (%)', config] = int(dq.OverallDim(arr))
+        DQout.at['Weightage (%)', config] = int(weights.get(config))
+
+        calcOverallDQ(DQout)
     return DQout
     
-    
+def calcOverallDQ(dataframe:pd):
+    """Void Function that calculates the Overall DQ score for a dataset using the calcWeight and OverallDQ functions in the dq_dimensions lib.
 
+    Args:
+        dataframe (pd): Pandas dataframe that includes the overall dimension scores and their corresponding weights set by user
+    Raises:
+        Exception: An Exception is raised if the argument passed is not a pandas dataframe.
+    """
+    #Creating list for weighted dimensions
+    wDims = []
+    configs = get_Configs('dimensions')
+    for column in dataframe:
+        if column in configs.keys():
+            wDims.append(dq.calcWeight(dataframe.loc['Score (%)'][column], dataframe.loc['Weightage (%)'][column]))
+    dataframe.at['Score (%)', 'Overall DQ Score'] = dq.OverallDQ(wDims)
 
 def main():
     print('Loading Input...')
@@ -255,7 +269,7 @@ def main():
     overall = createOverall(datascores)
     #output data
     data['Time'] = pd.to_datetime(data['Time'])
-    print(data['Time'].dtype)
+    #print(data['Time'].dtype)
     data.to_csv("output.csv")
     datascores.to_csv("scores.csv")
     overall.to_csv("overall.csv")
