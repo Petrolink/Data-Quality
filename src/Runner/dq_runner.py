@@ -232,12 +232,12 @@ def createOverall(dataframe:pd):
             case 'Completeness':
                 arr = arr
         if config == 'Completeness':
-            DQout.at['Score (%)', config] = dataframe.iloc[0][config]
+            DQout.at['Score (%)', config] = int(dataframe.iloc[0][config])
         else:
             DQout.at['Score (%)', config] = int(dq.OverallDim(arr))
         DQout.at['Weightage (%)', config] = int(weights.get(config))
 
-        calcOverallDQ(DQout)
+    calcOverallDQ(DQout)
     return DQout
     
 def calcOverallDQ(dataframe:pd):
@@ -254,7 +254,8 @@ def calcOverallDQ(dataframe:pd):
     for column in dataframe:
         if column in configs.keys():
             wDims.append(dq.calcWeight(dataframe.loc['Score (%)'][column], dataframe.loc['Weightage (%)'][column]))
-    dataframe.at['Score (%)', 'Overall DQ Score'] = dq.OverallDQ(wDims)
+    arr = [int(dq.OverallDQ(wDims)), dataframe.loc['Weightage (%)'].sum()]
+    dataframe.insert(len(dataframe.columns), "Overall DQ Score", arr, False)
 
 def main():
     print('Loading Input...')
