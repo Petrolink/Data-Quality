@@ -321,7 +321,7 @@ def main():
     print('Done!')
 
     print('Outputting Data...')
-    data.to_csv("output.csv")
+    data.to_csv("curve_dimData.csv")
     datascores.to_csv("scores.csv")
     overall.to_csv("overall.csv")
     hrscores.to_csv('hrscores.csv')
