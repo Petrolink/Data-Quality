@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import yaml
-from datetime import datetime
+from datetime import datetime, timedelta
 # Temporary fix that allows dimensions lib to be imported from other dir while the lib is not registered with pip
 # According to https://www.geeksforgeeks.org/python-import-module-outside-directory/
 import sys
@@ -71,7 +71,7 @@ def fill_dataframe(itype):
     Returns:
         df (pd): Pandas dataframe with input .csv data.
     """
-    #TODO finish updating file structure/loading and update unittests on Monday
+    #TODO finish updating file structure/loading and update unittests on Monday, need to make a test config file to use
     configs = get_Configs('general')
     if len(itype) == 0:
         raise Exception('Please provide a valid input type key-word ("input" or "check"), empty strings will not be accepted.')
@@ -100,6 +100,7 @@ def createDimensions(dataframe):
         TODO: Add exceptions and Test
     """
     # TODO Break this function up into multiple, too much going on in here.
+    # TODO DONT FORGET TO TEST WITH DATA FROM EDWIN!!
     CurveConfigs = get_Configs('curve')
     GenConfigs = get_Configs('general')
     Ccheck = False
@@ -162,40 +163,84 @@ def createDimensions(dataframe):
         comp.append(dq.Completeness(row.tolist()))
     dataframe['Completeness'] = comp
 
+def hourlyScores(dataframe:pd):
+    """Function that calculates and records the Dimension scores for each curve for each hour using the dimScore function in the dq_dimensions lib.
+    Args:
+        dataframe (pd): Pandas dataframe filled with all dimension data for each curve passed in as input.
+    Raises:
+        Exception: An Exception is thrown when the argument passed is not a pandas dataframe.
+    Returns:
+        hrScores (pd): Pandas dataframe that includes the dimension scores for each curve for each hour."""
+    hrScores = pd.DataFrame()
+    hrData = pd.DataFrame()
+    for index, row in dataframe.iterrows():
+        currtime = timeStr(row.at['Time'])
+        if index == 0:
+            hrstart = timeStr(row.at['Time'])
+
+        # Checking if an hour of data has been captured.
+        if currtime - hrstart >= timedelta(hours=1):
+            currscore = calcScores(hrData)
+            currscore.name = str(hrstart)
+            # Resetting hrstart.
+            hrstart = currtime
+            # Concatenating hourly scores to hrScores dataframe and reseting the hourly dataframe.
+            hrScores = pd.concat([hrScores, currscore.to_frame()], axis=1)
+            hrData = pd.DataFrame()
+        else:
+            hrData = pd.concat([hrData, row.to_frame(1).T])
+    return hrScores
+        
+    
+
 def calcScores(dataframe:pd):
     """Function that calculates the Dimension scores for each curve using the dimScore function in the dq_dimensions lib.
+
     Args: 
         dataframe (pd): Pandas dataframe filled with all dimension data for each curve passed in as input.
     Raises:
         Exception: An exception is thrown when the argument passed is not a pandas dataframe.
     Returns: 
-        scoreDf (pd): Pandas dataframe that includes the dimension scores for each curve.
+        scoreDf (pd): Pandas series that includes the dimension scores for each curve.
     """
+    #TODO add tests
     CurveNames = get_Configs('curve').keys()
     Dimensions = get_Configs('dimensions').keys()
-    scoreDf = pd.DataFrame()
+    scoreDf = pd.Series()
     for column in dataframe:
         if column in CurveNames:
             currCurve = column
         colcheck = column.split("_")
         if colcheck[0] in Dimensions:
-            score = [dq.dimScore(list(dataframe[column]))]
+            score = dq.dimScore(list(dataframe[column]))
             if colcheck[0] == 'Completeness':
                 scoreDf[colcheck[0]] = score
             else:
                 scoreDf[currCurve + '_' + colcheck[0]] = score
     return scoreDf
 
+def hourlyOverall(dataframe: pd):
+    """Function that creates the hourly aggregation output and calculates the hourly overall scores for the input dataset using the OverallDim() function in the dq_dimensions lib.
+    
+    Args: 
+        dataframe (pd): Pandas dataframe that inclues the hourly dimension scores for each curve.
+    Raises: 
+        Exception: An Exception is raised if the argument passed is not a pandas dataframe"""
+    HrDQout = pd.DataFrame()
+    #TODO Break create Overall into several functions so you can pass each column as a series to calculate the overall scores for an hour.
+    
+
 def createOverall(dataframe:pd):
     """Function that creates the overall aggregation output and calculates the overall scores for the input dataset using the OverallDim() function in the dq_dimensions lib.
     
     Args:
-        dataframe (pd): Pandas dataframe that includes the dimension scores for each curve.
+        dataframe (pd): Pandas series that includes the dimension scores for each curve.
     Raises:
         Exception: An Exception is raised if the argument passed is not a pandas dataframe.
     Returns:
         DQout (pd): Pandas dataframe that includes the overall dimension scores and their corresponding weights set by user in config.yaml
     """
+    #TODO break up and test
     DQout = pd.DataFrame()
     weights = get_Configs('dimensions')
     vali = []
@@ -203,18 +248,18 @@ def createOverall(dataframe:pd):
     cons = []
     uniq = []
     acc = [] 
-    
-    for column in dataframe:
-        if 'Validity' in column:
-            vali.append(float(dataframe.iloc[0][column]))
-        elif 'Frequency' in column: 
-            freq.append(float(dataframe.iloc[0][column]))
-        elif 'Consistency' in column: 
-            cons.append(float(dataframe.iloc[0][column]))
-        elif 'Uniqueness' in column:
-            uniq.append(float(dataframe.iloc[0][column]))
-        elif 'Accuracy' in column: 
-            acc.append(float(dataframe.iloc[0][column]))
+
+    for idx, value in dataframe.items():
+        if 'Validity' in idx:
+            vali.append(float(value))
+        elif 'Frequency' in idx: 
+            freq.append(float(value))
+        elif 'Consistency' in idx: 
+            cons.append(float(value))
+        elif 'Uniqueness' in idx:
+            uniq.append(float(value))
+        elif 'Accuracy' in idx: 
+            acc.append(float(value))
     
     for config in weights:
         arr = []
@@ -232,7 +277,7 @@ def createOverall(dataframe:pd):
             case 'Completeness':
                 arr = arr
         if config == 'Completeness':
-            DQout.at['Score (%)', config] = int(dataframe.iloc[0][config])
+            DQout.at['Score (%)', config] = int(dataframe.at[config])
         else:
             DQout.at['Score (%)', config] = int(dq.OverallDim(arr))
         DQout.at['Weightage (%)', config] = int(weights.get(config))
@@ -248,6 +293,8 @@ def calcOverallDQ(dataframe:pd):
     Raises:
         Exception: An Exception is raised if the argument passed is not a pandas dataframe.
     """
+    #TODO Test
+
     #Creating list for weighted dimensions
     wDims = []
     configs = get_Configs('dimensions')
@@ -258,21 +305,27 @@ def calcOverallDQ(dataframe:pd):
     dataframe.insert(len(dataframe.columns), "Overall DQ Score", arr, False)
 
 def main():
+
     print('Loading Input...')
     data = fill_dataframe('input')
     print('Done!')
-    print('Calculating and Recording Dimensions.')
+
+    print('Calculating and Recording Dimensions...')
     createDimensions(data)
     print('Done!')
-    print('Calculating Scores.')
+
+    print('Calculating Scores...')
     datascores = calcScores(data)
-    print('Done!')
+    hrscores = hourlyScores(data)
     overall = createOverall(datascores)
-    #output data
-    data['Time'] = pd.to_datetime(data['Time'])
-    #print(data['Time'].dtype)
+    print('Done!')
+
+    print('Outputting Data...')
     data.to_csv("output.csv")
     datascores.to_csv("scores.csv")
     overall.to_csv("overall.csv")
+    hrscores.to_csv('hrscores.csv')
+    print('Done!') 
+
 if __name__ == "__main__":
     main()

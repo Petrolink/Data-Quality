@@ -1,5 +1,6 @@
 import unittest
 import math
+import pandas as pd
 from datetime import datetime
 # Temporary fix that allows dimensions lib to be imported from other dir while the lib is not registered with pip
 # According to https://www.geeksforgeeks.org/python-import-module-outside-directory/
@@ -169,13 +170,16 @@ class Testdq_dimensions_runner(unittest.TestCase):
 
     def test_fill_dataframe(self):
         """Testing fill_dataframe() funciton in dq_runner.py that fills a dataframe with data from a .csv file."""
-        # Testing passing in a non .csv file ensuring an exception is thrown.
-        self.assertRaises(Exception, dq_runner.fill_dataframe, 'Test_Inputs\Testtype.xlsx')
-        # Testing passing in a csv file with no data ensuring an exception is thrown.
-        self.assertRaises(Exception, dq_runner.fill_dataframe, 'Test_Inputs\Testempty.csv')
+        # Ensuring fill_dataframe() throws an exception when passed a non-valid key-value.
+        self.assertRaises(Exception, dq_runner.fill_dataframe, 'notvalid')
         # Testing passing in an empty and null string ensuring an exception is thrown.
         self.assertRaises(Exception, dq_runner.fill_dataframe)
         self.assertRaises(Exception, dq_runner.fill_dataframe, '')
+        # Ensuring fill_dataframe() throws an exception when the configured file names do not end in .csv
+        #TODO create bad config file and use it to test incorrect file names passed as configuration.
+        # Ensuring fill_dataframe() returns a pandas dataframe instance when valid key-values are passed ("input" and "check")
+        self.assertIsInstance(dq_runner.fill_dataframe('input'), pd.DataFrame)
+        self.assertIsInstance(dq_runner.fill_dataframe('check'), pd.DataFrame)
 
     def test_get_Configs(self):
         """Testing get_Configs() function in dq_runner.py that retrieves type of configuration requested by user with a string key value (ie. "curve")."""

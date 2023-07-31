@@ -161,17 +161,6 @@ def dimScore(dim:list):
         raise Exception('Please only provide a list with containing only boolean data to dimScore().')
     return score
 
-def Hourlyagg(dimValues, Time):
-    """Function that calculates a logwise dimension using the dimension column passed as a list.
-    Args:
-        dimValues (list): Dimension column values generated using the dq_dimension curve level functions.
-        Time (list): Timestamp column values that align with each sample in dimValues.
-    Raises:
-        Exception: 
-    Returns:
-        Measure: The calculated 
-    """
-
 def OverallDim(data: list):
     """Function that calculates the overall score of a Dimension for a dataset.
     Args:
