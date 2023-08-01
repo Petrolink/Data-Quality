@@ -59,8 +59,7 @@ def get_Configs(configType):
         case default:
             raise Exception('The value passed was an invalid config type key. Please pass a valid key: "curve"')
 
-
-def fill_dataframe(itype):
+def fill_dataframe(itype:str):
     """Reads in a .csv file and returns a mutable dataframe filled with .csv data.
     Args: 
         itype (str): An input type key word (input or check)
@@ -92,7 +91,7 @@ def fill_dataframe(itype):
         raise Exception("Expecting file with data")
     return df
 
-def createDimensions(dataframe):
+def createDimensions(dataframe:pd.DataFrame):
     """Void function that adds and calculates dimension columns in the dataframe passed in using the configurations set by user.
     Args:
         dataframe (pd): Pandas dataframe with intput .csv data
@@ -163,8 +162,8 @@ def createDimensions(dataframe):
         comp.append(dq.Completeness(row.tolist()))
     dataframe['Completeness'] = comp
 
-def hourlyScores(dataframe:pd):
-    """Function that calculates and records the Dimension scores for each curve for each hour using the dimScore function in the dq_dimensions lib.
+def hourlyScores(dataframe:pd.DataFrame):
+    """Function that calculates and records the Dimension scores for each curve for each hour by using the calcScores() function for each hour of data.
     Args:
         dataframe (pd): Pandas dataframe filled with all dimension data for each curve passed in as input.
     Raises:
@@ -191,9 +190,7 @@ def hourlyScores(dataframe:pd):
             hrData = pd.concat([hrData, row.to_frame(1).T])
     return hrScores
         
-    
-
-def calcScores(dataframe:pd):
+def calcScores(dataframe:pd.DataFrame):
     """Function that calculates the Dimension scores for each curve using the dimScore function in the dq_dimensions lib.
 
     Args: 
@@ -219,18 +216,27 @@ def calcScores(dataframe:pd):
                 scoreDf[currCurve + '_' + colcheck[0]] = score
     return scoreDf
 
-def hourlyOverall(dataframe: pd):
-    """Function that creates the hourly aggregation output and calculates the hourly overall scores for the input dataset using the OverallDim() function in the dq_dimensions lib.
+def hourlyOverall(dataframe: pd.DataFrame):
+    """Function that creates the hourly aggregation output and calculates the hourly overall scores for the input dataset using the createOverall Function for each hour of scores.
     
     Args: 
         dataframe (pd): Pandas dataframe that inclues the hourly dimension scores for each curve.
     Raises: 
         Exception: An Exception is raised if the argument passed is not a pandas dataframe"""
     HrDQout = pd.DataFrame()
-    #TODO Break create Overall into several functions so you can pass each column as a series to calculate the overall scores for an hour.
-    
+    weights = get_Configs('dimensions')
+    for col in dataframe:
+        coldata = createOverall(dataframe[col], True)
+        HrDQout = pd.concat([HrDQout, coldata])
 
-def createOverall(dataframe:pd):
+    for dim in HrDQout:
+        if dim in weights.keys():
+            HrDQout.at['Weightage (%)', dim] = weights.get(dim)
+    totalweight = HrDQout.loc['Weightage (%)'].sum()
+    HrDQout.at['Weightage (%)', 'Overall Score'] = totalweight
+    return HrDQout
+
+def createOverall(series:pd.Series(), hourly=False):
     """Function that creates the overall aggregation output and calculates the overall scores for the input dataset using the OverallDim() function in the dq_dimensions lib.
     
     Args:
@@ -243,13 +249,16 @@ def createOverall(dataframe:pd):
     #TODO break up and test
     DQout = pd.DataFrame()
     weights = get_Configs('dimensions')
+    hrname = ''
+    if hourly: 
+        hrname = series.name
     vali = []
     freq = []
     cons = []
     uniq = []
     acc = [] 
 
-    for idx, value in dataframe.items():
+    for idx, value in series.items():
         if 'Validity' in idx:
             vali.append(float(value))
         elif 'Frequency' in idx: 
@@ -275,21 +284,34 @@ def createOverall(dataframe:pd):
             case 'Accuracy':
                 arr = acc
             case 'Completeness':
-                arr = arr
-        if config == 'Completeness':
-            DQout.at['Score (%)', config] = int(dataframe.at[config])
-        else:
-            DQout.at['Score (%)', config] = int(dq.OverallDim(arr))
-        DQout.at['Weightage (%)', config] = int(weights.get(config))
-
-    calcOverallDQ(DQout)
+                arr.append(float(series.at[config]))
+        overallFormat(DQout, arr, config, hourly, hrname)
+    
+    calcOverallDQ(DQout, hourly, hrname)
     return DQout
     
-def calcOverallDQ(dataframe:pd):
+def overallFormat(outData: pd.DataFrame, dArr: list, dim:str, hourly=False, hour=''):
+    """Void Function that aids in formatting the DQout output dataframe in the createOverall() Function.
+    Args:
+        dArr (list): Dimension array containing all curve scores for a certain dimension.
+        dim (str): Dimension name 
+        hourly (boolean): Hourly aggregation toggle, defaulted to false when not passed as an argument.
+        hour (str): Hour timestamp, defaulted to an empty string when not passed as an argument.
+    Raises:
+
+    """
+    weights = get_Configs('dimensions')
+    if hourly:
+        outData.at[hour, dim] = round(dq.OverallDim(dArr), 2)
+    else:
+        outData.at['Score (%)', dim] = round(dq.OverallDim(dArr), 2)
+        outData.at['Weightage (%)', dim] = weights.get(dim)
+    
+def calcOverallDQ(dataframe:pd.DataFrame, hourly=False, hour=''):
     """Void Function that calculates the Overall DQ score for a dataset using the calcWeight and OverallDQ functions in the dq_dimensions lib.
 
     Args:
-        dataframe (pd): Pandas dataframe that includes the overall dimension scores and their corresponding weights set by user
+        dataframe (pd.Dataframe): Pandas dataframe that includes the overall dimension scores and their corresponding weights set by user
     Raises:
         Exception: An Exception is raised if the argument passed is not a pandas dataframe.
     """
@@ -300,9 +322,15 @@ def calcOverallDQ(dataframe:pd):
     configs = get_Configs('dimensions')
     for column in dataframe:
         if column in configs.keys():
-            wDims.append(dq.calcWeight(dataframe.loc['Score (%)'][column], dataframe.loc['Weightage (%)'][column]))
-    arr = [int(dq.OverallDQ(wDims)), dataframe.loc['Weightage (%)'].sum()]
-    dataframe.insert(len(dataframe.columns), "Overall DQ Score", arr, False)
+            if hourly:
+                wDims.append(dq.calcWeight(dataframe.loc[hour][column], configs.get(column)))
+            else:
+                wDims.append(dq.calcWeight(dataframe.loc['Score (%)'][column], dataframe.loc['Weightage (%)'][column]))
+    if hourly:
+        arr = [round(dq.OverallDQ(wDims), 2)]
+    else:
+        arr = [round(dq.OverallDQ(wDims), 2), dataframe.loc['Weightage (%)'].sum()]
+    dataframe.insert(len(dataframe.columns), "Overall Score", arr, False)
 
 def main():
 
@@ -318,6 +346,7 @@ def main():
     datascores = calcScores(data)
     hrscores = hourlyScores(data)
     overall = createOverall(datascores)
+    hroverall = hourlyOverall(hrscores)
     print('Done!')
 
     print('Outputting Data...')
@@ -325,6 +354,7 @@ def main():
     datascores.to_csv("scores.csv")
     overall.to_csv("overall.csv")
     hrscores.to_csv('hrscores.csv')
+    hroverall.to_csv('hroverall.csv')
     print('Done!') 
 
 if __name__ == "__main__":

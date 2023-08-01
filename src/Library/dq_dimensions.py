@@ -150,7 +150,7 @@ def dimScore(dim:list):
         Exception: An Exception is raised if any value in the dimension column passed is not a boolean or None value.
         Exception: An Exception is raised if the argument passed is not a list.
     Returns: 
-        score (int): Calculated score percentage of the dimension passed.
+        score (float): Calculated score percentage of the dimension passed.
     """
     good = 0
     check =  all(isinstance(x, (bool, type(None))) for x in dim)
@@ -186,7 +186,7 @@ def calcWeight(score: float, weight: float):
     Raises:
         Exception: An exception is raised if the arguments passed are not numerical.
     Returns:
-        wScore: The weighted dimension score.
+        wScore (float): The weighted dimension score.
     """
     if weight > 100:
         raise Exception('Dimension Weights can only range from 0-100 as it is a percentage.')
