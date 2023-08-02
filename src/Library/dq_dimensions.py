@@ -1,6 +1,6 @@
 import math
 from datetime import datetime, timedelta
-#TODO add this library to pip when completed.
+#TODO add this library to pip.
 
 #Curve Level Functions
 
@@ -66,15 +66,12 @@ def Completeness(cFreqs:list):
         Boolean: True/Good if all values in the array passed in are "TRUE"
         Boolean: False/Bad if any of the values in the array passed in are "FALSE"
         """
-    if type(cFreqs) is list:
-        for i in cFreqs:
-            if type(i) is bool or type(i) is None:
-                if i is False: 
-                    return False
-            else:
-                raise Exception('Please only pass arrays with boolean or Null Values.')
-    else:
-        raise Exception('Please only pass boolean arrays as arguments to Completeness().')
+    for i in cFreqs:
+        if type(i) is bool or type(i) is None:
+            if i is False: 
+                return False
+        else:
+            raise Exception('Please only pass arrays with boolean or Null Values.')
     return True
 
 def Uniqueness(curr:float, prev=0.0):
@@ -138,9 +135,36 @@ def Accuracy(currBD=0.0, prevBD=0.0, currBH=0.0, prevBH=0.0, tol=0.0):
     else:
         BDdelta = abs(currBD - prevBD)
         BPdelta = abs(currBH - prevBH)
-        if abs(BDdelta - BPdelta) > tol:
-            return False
+    return checkDelta(BDdelta, BPdelta, tol)
+
+def checkDelta(valOne: float, valTwo: float, tol: float):
+    """Function that determines if the delta between two values lies within a givin tolerance.
+    
+    Args:
+        valOne (float): 1st value to be used in calculating the delta
+        valTwo (float): 2nd value to be used in calculating the delta
+        tol (float): Delta tolerance
+    Raises:
+        Exception: An exception is raised if any of the arguments passed are not numerical.
+    Returns: 
+        Boolean: True if the calculated delta lies within the specified tolerance.
+    """
+    Delta = abs(valOne - valTwo)
+    if Delta > tol:
+        return False
     return True
+
+def checkStationary(data: dict):
+    """Function that performs a stationary check by utilizing the following curves and their thresholds: 
+    BitDepth, RPM, SPP, Hookload and BlockPosition.
+    
+    Args:
+    Raises:
+
+    Returns:
+        Boolean: True if all curve values are within their corresponding thresholds.
+        Boolean: False if any of the curves needed for a stationary check are not included/passed as an argument.
+        Boolean: False if any curve value breaks its threshold."""
 
 def dimScore(dim:list):
     """Function that calculates the score of a curve's dimension.

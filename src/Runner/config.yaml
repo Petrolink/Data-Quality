@@ -1,36 +1,78 @@
 #Enter Configurations for curve values you would like to analyze
 #TODO Add units config and explain in read me that the runner assumes that the units are configed and not written into title.
 Curve_configs:
-  BDEP:
+  BPOS:
     Dtype: float
-    upLim: 20001.0
+    upLim: 40.0
     lowLim: -0.0001
-  BHT:
+    rule: Delta_BPOS
+  DBTM:
     Dtype: float
-    upLim: 100.0
+    upLim: 6000.0
     lowLim: -0.0001
-  CTOR:
+    rule: OnSurface
+  DMEA:
     Dtype: float
-    upLim: 100.0
+    upLim: 6000.0
     lowLim: -0.0001
-  DEPT:
+    rule:
+  HKLA:
     Dtype: float
-    upLim: 20000.0
+    upLim: 500.0
     lowLim: -0.0001
-  RPM:
+    rule: Hookload
+  MFIA:
+    Dtype: float
+    upLim: 500.0
+    lowLim: -0.0001
+    rule:
+  RPMA:
     Dtype: float
     upLim: 300.0
     lowLim: -0.0001
+    rule: RPM
+  SPPA:
+    Dtype: float
+    upLim: 6000.0
+    lowLim: -0.0001
+    rule: SPP
+  TQA:
+    Dtype: float
+    upLim: 10000.0
+    lowLim: -0.0001
+    rule:
+  TV01:
+    Dtype: float
+    upLim: 200.0
+    lowLim: -0.0001
+    rule:
+  TVT:
+    Dtype: float
+    upLim: 500.0
+    lowLim: -0.0001
+    rule:
+  WOBA:
+    Dtype: float
+    upLim: 500.0
+    lowLim: -0.0001
+    rule:
+Rule_thresholds:
+  OnSurface: 328.0
+  RPM: 5.0
+  SPP: 500.0
+  Hookload: 100.0
+  Delta_BPOS: 0.1
+  Bit_Move: 0.2
 General_configs:
-  DataFile: 'example.csv'
+  DataFile: 'SampleDate_Time2.csv'
   CheckFile: 'consistency_check.csv'
   CalcConsistency: True
-  freqTol: 1.1
+  freqTol: 5.0
 Accuracy_configs:
   Curves:
-    BDEP: BHT
-    BHT: BDEP
-  Tolerance: 1.1
+    DBTM: BPOS
+    BPOS: DBTM
+  Tolerance: 2.0
 Dimension_weights:
   Validity: 35
   Frequency: 25

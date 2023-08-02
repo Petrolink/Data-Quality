@@ -99,7 +99,6 @@ def createDimensions(dataframe:pd.DataFrame):
         TODO: Add exceptions and Test
     """
     # TODO Break this function up into multiple, too much going on in here.
-    # TODO DONT FORGET TO TEST WITH DATA FROM EDWIN!!
     CurveConfigs = get_Configs('curve')
     GenConfigs = get_Configs('general')
     Ccheck = False
