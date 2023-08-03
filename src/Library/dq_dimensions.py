@@ -2,7 +2,34 @@ import math
 from datetime import datetime, timedelta
 #TODO add this library to pip.
 
-#Curve Level Functions
+# Samplewise Domain Dictionary (Use in runner as dictionary template to pass to checker functions).
+sampleDomains = {
+    'BitDepth': {
+        'curr': float,
+        'prev': float, 
+        'surfaceThresh': float,
+        'bitmoveThresh': float
+    }, 
+    'BlockPosition': {
+        'curr': float,
+        'prev': float,
+        'deltaThresh': float
+    },
+    'RPM': {
+        'value': float, 
+        'thresh': float
+    },
+    'SPP': {
+        'value': float,
+        'thresh': float
+    }, 
+    'Hookload': {
+        'value': float,
+        'thresh': float
+    }
+}
+
+# Curve Level Functions
 
 def Validity(cValue:float, upLim:float, lowLim:float):
     """Function that determines the valididty of the current sample/row by checking if the curve value passed is within an upper and lower limit
@@ -74,24 +101,30 @@ def Completeness(cFreqs:list):
             raise Exception('Please only pass arrays with boolean or Null Values.')
     return True
 
-def Uniqueness(curr:float, prev=0.0):
+def Uniqueness(stationary:bool, onsurface: bool, curr:float, prev=0.0):
     """Function that determines the uniqueness of a sample/row by comparing the current and previous curve values and ensuring they are not the same.
-    
+    #TODO Update tests to include rig statuses.
     Args:
+        stationary (bool): Stationary rig status.
+        onsurface (bool): On surface rig status.
         curr (float): Current curve value to be checked against "prev".
         prev (float or None): Previous curve value to be checked against "curr" or None in 1st sample case (ie. "dq.uniqueness(12.4)").
     Raises: 
-        Exception: An exception is raised if both arguments are not type(None) and are not of type float.
+        Exception: An exception is raised if the arguments passed are not of their set type (prev is an optional argument).
     Returns:
+        Boolean: True/Good if either of the rig statuses are true.
         Boolean: True/Good if curr != prev or if curr is a float value and prev is a None value.
         Boolean: False/Bad if curr == prev."""
-    if type(curr) is float and type(prev) is float:
-        if curr == prev:
-            return False
-    elif type(curr) is float and type(prev) is None or type(curr) is float and prev == 0.0:
+    if onsurface or stationary:
         return True
     else:
-        raise Exception('Please ensure to only pass float values as arguments for Uniqueness() or a float as "curr" and a None as "prev" in a 1st sample/row case.')
+        if type(curr) is float and type(prev) is float:
+            if curr == prev:
+                return False
+        elif type(curr) is float and type(prev) is None or type(curr) is float and prev == 0.0:
+            return True
+        else:
+            raise Exception('Please ensure to only pass float values as arguments for Uniqueness() or a float as "curr" and a None as "prev" in a 1st sample/row case.')
     return True
 
 def Consistency(xCurve:float, yCurve:float):
@@ -137,6 +170,8 @@ def Accuracy(currBD=0.0, prevBD=0.0, currBH=0.0, prevBH=0.0, tol=0.0):
         BPdelta = abs(currBH - prevBH)
     return checkDelta(BDdelta, BPdelta, tol)
 
+# Checker Functions
+
 def checkDelta(valOne: float, valTwo: float, tol: float):
     """Function that determines if the delta between two values lies within a givin tolerance.
     
@@ -159,13 +194,30 @@ def checkStationary(data: dict):
     BitDepth, RPM, SPP, Hookload and BlockPosition.
     
     Args:
-    Raises:
 
+    Raises:
+        Exception: An Exception is raised if
     Returns:
         Boolean: True if all curve values are within their corresponding thresholds.
         Boolean: False if any of the curves needed for a stationary check are not included/passed as an argument.
         Boolean: False if any curve value breaks its threshold."""
 
+def checkSuface(depth:float, thresh:float):
+    """Function that performs an on surface check by taking a bitdepth value and a on surface threshold.
+    Args:
+        depth (float): Bit Depth value.
+        thresh (float): On surface threshold.
+    Raises:
+        Exception: An exception is raised if the arguments passed are not numerical values.
+    Returns:
+        Boolean: True if depth <= thresh.
+        Boolean: False if depth > thresh.
+    """
+    if depth > thresh:
+        return False
+    return True
+
+# Score Calculation Functions
 def dimScore(dim:list):
     """Function that calculates the score of a curve's dimension.
     Args:

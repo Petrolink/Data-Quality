@@ -10,7 +10,9 @@ Curve_configs:
     Dtype: float
     upLim: 6000.0
     lowLim: -0.0001
-    rule: OnSurface
+    rule: 
+      - OnSurface
+      - BitMove
   DMEA:
     Dtype: float
     upLim: 6000.0

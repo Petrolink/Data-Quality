@@ -56,6 +56,10 @@ def get_Configs(configType):
             if len(configs['Dimension_weights']) == 0:
                 raise Exception('Expecting input for Dimension_weights in config.yaml')
             return configs['Dimension_weights']
+        case 'rules':
+            if len(configs['Rule_thresholds']) == 0:
+                raise Exception('Expecting input for Rule_thresholds in config.yaml')
+            return configs['Rule_thresholds']
         case default:
             raise Exception('The value passed was an invalid config type key. Please pass a valid key: "curve"')
 
@@ -101,21 +105,26 @@ def createDimensions(dataframe:pd.DataFrame):
     # TODO Break this function up into multiple, too much going on in here.
     CurveConfigs = get_Configs('curve')
     GenConfigs = get_Configs('general')
-    Ccheck = False
-    if GenConfigs.get('CalcConsistency') is True: 
+    cCheck = GenConfigs.get('CalcConsistency')
+    if cCheck:
         consCheck = fill_dataframe('check')
-        Ccheck = True
     AccConfigs = get_Configs('accuracy')
     AccCurves = AccConfigs.get('Curves')
     CurveNames = get_Configs('curve').keys()
     AllFreq = pd.DataFrame()
     comp = []
-    numcurv = 0
+    # Looping through input columns.
     for column in dataframe:
         colNum = 0
+        # Calculating Dimensions lists/arrays.
+
+        # Checking to see if the column(curve) name is a configured curve in config.yaml
         if column in CurveNames:
-            numcurv += 1
+            #Grabbing the current curves configuration.
             cConfig = CurveConfigs[column]
+            #Checking if the column(curve) is listed in Accuracy_configs in config.yaml
+            if column in AccConfigs.keys():
+                accuracy = True
             val = []
             freq = []
             uniq = [] 
@@ -125,41 +134,98 @@ def createDimensions(dataframe:pd.DataFrame):
             index = 0
             for i in dataframe[column]:
                 val.append(dq.Validity(i, cConfig.get('upLim'), cConfig.get('lowLim')))
-                if Ccheck:
+                if cCheck:
                     cons.append(dq.Consistency(i, consCheck.iloc[index][column]))
                 if index == 0:
-                    if column in AccCurves.keys():
+                    sdomains = sampleDomains(dataframe.loc[index])
+                    if accuracy:
                         paired = AccCurves[column]
                         acc.append(dq.Accuracy(i, None, dataframe.iloc[index][paired], None))
                     #First sample/row scenarios.
                     freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), None, GenConfigs.get('freqTol')))
                     uniq.append(dq.Uniqueness(i))
                 else:
-                    if column in AccCurves.keys():
+                    sdomains = sampleDomains(dataframe.loc[index], dataframe.loc[index-1])
+                    if accuracy:
                         paired = AccCurves[column]
                         acc.append(dq.Accuracy(i, prev, dataframe.iloc[index][paired], dataframe.iloc[index-1][paired]))
                     freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), GenConfigs.get('freqTol')))
                     uniq.append(dq.Uniqueness(i, prev))
                 prev = i
                 index += 1
-            # these inserts will be put into a function here for testing ATM.
+            # Inserts
             count = 0
             AllFreq.insert(count, "Frequency", freq, True)
             count += 1
-            dataframe.insert(colNum+1, "Validity_"+str(numcurv), val, True)
-            dataframe.insert(colNum+2, "Frequency_"+str(numcurv), freq, True)
-            if Ccheck:
-                dataframe.insert(colNum+3, "Consistency_"+str(numcurv), cons, True)
-                dataframe.insert(colNum+4, "Uniqueness_"+str(numcurv), uniq, True)
-                if column in AccCurves.keys():
-                    dataframe.insert(colNum+5, "Accuracy_"+str(numcurv), acc, True)
+            if cCheck:
+                dimensions = {'Curve': column, 'Valididty_': val, 'Frequency_': freq, 'Consistency_': cons, 'Uniqueness_': uniq}
             else:
-                dataframe.insert(colNum+3, "Uniqueness_"+str(numcurv), uniq, True)
-                if column in AccCurves.keys():
-                    dataframe.insert(colNum+4, "Accuracy_"+str(numcurv), acc, True)
+                dimensions = {'Curve': column, 'Valididty_': val, 'Frequency_': freq, 'Uniqueness_': uniq}
+            if accuracy:
+                dimensions['Accuracy_']= acc
+            insertDims(dataframe, colNum, dimensions)
     for idx, row, in AllFreq.iterrows():
         comp.append(dq.Completeness(row.tolist()))
     dataframe['Completeness'] = comp
+
+def sampleDomains(cSample: pd.Series, pSample=pd.Series):
+    """Function that loads an empty sampleDomain dictionary template from dq.dimensions with data using a sample(row of data) from a dataset.
+    Args:
+        cSample (pd.Series): Current row of data from input
+        pSample (optional): Previous row of data from input (optional argument as 1st row of data has no previous)
+    Raises:
+        Exception: An Exception is raised if the argument passed is not a pandas series.
+    Returns:
+        sDomains (dict): sampleDomain dictionary loaded with data"""
+    CurveConfigs = get_Configs('curve')
+    RuleConfigs = get_Configs('rules')
+    sDomains = dq.sampleDomains
+    for idx, value in cSample:
+        if idx in CurveConfigs.keys() and len(CurveConfigs[idx].get('rule')) != 0:
+            rule = CurveConfigs[idx].get('rule')
+            if type(rule) is list:
+                sDomains['BitDepth']['curr'] = value
+                sDomains['BitDepth']['prev'] = pSample.at[idx]
+                for i in rule:
+                    match(i):
+                        case 'OnSurface':
+                            sDomains['BitDepth']['surfaceThresh'] = RuleConfigs.get(i)
+                        case 'BitMove':
+                            sDomains['BitDepth']['bitmoveThresh'] = RuleConfigs.get(i)
+                        case default:
+                            raise Exception(i + ' is not a recognized BitDepth domain rule.')
+            else:
+                match(rule):
+                    case 'Hookload':
+                        sDomains['Hookload']['value'] = value
+                        sDomains['Hookload']['thresh'] = RuleConfigs.get(rule)
+                    case 'RPM':
+                        sDomains['RPM']['value'] = value
+                        sDomains['RPM']['thresh'] = RuleConfigs.get(rule)
+                    case 'SPP':
+                        sDomains['SPP']['value'] = value
+                        sDomains['SPP']['thresh'] = RuleConfigs.get(rule)
+                    case 'Delta_BPOS':
+                        sDomains['BlockPosition']['curr'] = value
+                        sDomains['BlockPosition']['prev'] = pSample.at[idx]
+                        sDomains['BlockPosition']['deltaThresh'] = RuleConfigs.get(rule)
+    return sDomains
+
+def insertDims(dataframe: pd.DataFrame, curveCol:int, dims:dict):
+    """Void Function that aids createDimensions by inserting/formatting the calculated dimensions lists into the curveDimension Dataframe (data in main).
+    Args:
+        dataframe (pd.Dataframe): Dataframe to add inserts into.
+        curveCol (int): Column number of the current curve to add dimensions for.
+        dims (dict): Dictionary containing all dimensions for a curve, except for completeness(there is only one overall completeness value).
+    Raises:
+        Exception: An Exception is raised if any of the arguments are not of their expected types.
+    """
+    for key, value in dims.items():
+        if key is 'Curve':
+            name = value
+        else:
+            curveCol+= 1
+            dataframe.insert(curveCol, key+name, value, True)
 
 def hourlyScores(dataframe:pd.DataFrame):
     """Function that calculates and records the Dimension scores for each curve for each hour by using the calcScores() function for each hour of data.
