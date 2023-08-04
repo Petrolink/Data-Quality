@@ -101,12 +101,12 @@ def Completeness(cFreqs:list):
             raise Exception('Please only pass arrays with boolean or Null Values.')
     return True
 
-def Uniqueness(stationary:bool, onsurface: bool, curr:float, prev=0.0):
+def Uniqueness(curr:float, prev=0.0, stationary=False, onsurface=False):
     """Function that determines the uniqueness of a sample/row by comparing the current and previous curve values and ensuring they are not the same.
     #TODO Update tests to include rig statuses.
     Args:
-        stationary (bool): Stationary rig status.
-        onsurface (bool): On surface rig status.
+        stationary (bool - OPTIONAL): Stationary rig status, defaulted to False.
+        onsurface (bool - OPTIONAL): On surface rig status, defaulted to False.
         curr (float): Current curve value to be checked against "prev".
         prev (float or None): Previous curve value to be checked against "curr" or None in 1st sample case (ie. "dq.uniqueness(12.4)").
     Raises: 
@@ -115,16 +115,13 @@ def Uniqueness(stationary:bool, onsurface: bool, curr:float, prev=0.0):
         Boolean: True/Good if either of the rig statuses are true.
         Boolean: True/Good if curr != prev or if curr is a float value and prev is a None value.
         Boolean: False/Bad if curr == prev."""
-    if onsurface or stationary:
+    if type(curr) is float and type(prev) is float:
+        if curr == prev:
+            return False
+    elif type(curr) is float and type(prev) is None or type(curr) is float and prev == 0.0:
         return True
     else:
-        if type(curr) is float and type(prev) is float:
-            if curr == prev:
-                return False
-        elif type(curr) is float and type(prev) is None or type(curr) is float and prev == 0.0:
-            return True
-        else:
-            raise Exception('Please ensure to only pass float values as arguments for Uniqueness() or a float as "curr" and a None as "prev" in a 1st sample/row case.')
+        raise Exception('Please ensure to only pass float values as arguments for Uniqueness() or a float as "curr" and a None as "prev" in a 1st sample/row case.')
     return True
 
 def Consistency(xCurve:float, yCurve:float):
@@ -189,12 +186,12 @@ def checkDelta(valOne: float, valTwo: float, tol: float):
         return False
     return True
 
-def checkStationary(data: dict):
+def checkStationary(sDomain: dict):
     """Function that performs a stationary check by utilizing the following curves and their thresholds: 
     BitDepth, RPM, SPP, Hookload and BlockPosition.
     
     Args:
-
+        sDomain (dict): 
     Raises:
         Exception: An Exception is raised if
     Returns:
@@ -202,19 +199,17 @@ def checkStationary(data: dict):
         Boolean: False if any of the curves needed for a stationary check are not included/passed as an argument.
         Boolean: False if any curve value breaks its threshold."""
 
-def checkSuface(depth:float, thresh:float):
+def checkSurface(sDomain: dict):
     """Function that performs an on surface check by taking a bitdepth value and a on surface threshold.
     Args:
-        depth (float): Bit Depth value.
-        thresh (float): On surface threshold.
+        sDomain (dict): 
     Raises:
         Exception: An exception is raised if the arguments passed are not numerical values.
     Returns:
         Boolean: True if depth <= thresh.
         Boolean: False if depth > thresh.
     """
-    if depth > thresh:
-        return False
+    
     return True
 
 # Score Calculation Functions

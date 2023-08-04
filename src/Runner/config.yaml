@@ -69,6 +69,7 @@ General_configs:
   DataFile: 'SampleDate_Time2.csv'
   CheckFile: 'consistency_check.csv'
   CalcConsistency: True
+  CheckRigStatuses: False
   freqTol: 5.0
 Accuracy_configs:
   Curves:

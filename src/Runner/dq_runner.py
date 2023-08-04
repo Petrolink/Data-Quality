@@ -98,7 +98,7 @@ def fill_dataframe(itype:str):
 def createDimensions(dataframe:pd.DataFrame):
     """Void function that adds and calculates dimension columns in the dataframe passed in using the configurations set by user.
     Args:
-        dataframe (pd): Pandas dataframe with intput .csv data
+        dataframe (pd): Pandas dataframe with input .csv data
     Raises:
         TODO: Add exceptions and Test
     """
@@ -113,9 +113,16 @@ def createDimensions(dataframe:pd.DataFrame):
     CurveNames = get_Configs('curve').keys()
     AllFreq = pd.DataFrame()
     comp = []
+    sDomains = pd.DataFrame()
+    if GenConfigs['CheckRigStatuses']:
+        print('creating sDomains')
+        sDomains = createSDomains(dataframe)
+        print('Done!')
+    
     # Looping through input columns.
     for column in dataframe:
         colNum = 0
+        accuracy = False
         # Calculating Dimensions lists/arrays.
 
         # Checking to see if the column(curve) name is a configured curve in config.yaml
@@ -137,7 +144,6 @@ def createDimensions(dataframe:pd.DataFrame):
                 if cCheck:
                     cons.append(dq.Consistency(i, consCheck.iloc[index][column]))
                 if index == 0:
-                    sdomains = sampleDomains(dataframe.loc[index])
                     if accuracy:
                         paired = AccCurves[column]
                         acc.append(dq.Accuracy(i, None, dataframe.iloc[index][paired], None))
@@ -145,7 +151,6 @@ def createDimensions(dataframe:pd.DataFrame):
                     freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), None, GenConfigs.get('freqTol')))
                     uniq.append(dq.Uniqueness(i))
                 else:
-                    sdomains = sampleDomains(dataframe.loc[index], dataframe.loc[index-1])
                     if accuracy:
                         paired = AccCurves[column]
                         acc.append(dq.Accuracy(i, prev, dataframe.iloc[index][paired], dataframe.iloc[index-1][paired]))
@@ -167,49 +172,75 @@ def createDimensions(dataframe:pd.DataFrame):
     for idx, row, in AllFreq.iterrows():
         comp.append(dq.Completeness(row.tolist()))
     dataframe['Completeness'] = comp
+    dataframe.to_csv('inserts.csv')
 
-def sampleDomains(cSample: pd.Series, pSample=pd.Series):
-    """Function that loads an empty sampleDomain dictionary template from dq.dimensions with data using a sample(row of data) from a dataset.
+def createSDomains(dataframe: pd.DataFrame):
+    """Function that returns a dictionary filled with sampleDomains for each row in the dataframe passed by using the sampleDomains() function.
+    Args:
+        dataframe (pd.Dataframe): Pandas dataframe with input .csv data
+    Raises:
+        Exception: An Exception is raised if the argument passed is not a pandas dataframe.
+    Returns:
+        sDomains
+    """
+    sDomains = {}
+    for idx, row in dataframe.iterrows():
+        if idx == len(dataframe)/2:
+            print('50%% complete')
+        if idx == 0: 
+            sDomains[idx] = sampleDomain(row)
+        else:
+            sDomains[idx] = sampleDomain(row, prev)
+        prev = row
+    return sDomains
+
+def sampleDomain(cSample: pd.Series, pSample=pd.Series):
+    """Function that loads an empty sampleDomain dictionary template from dq.dimensions with data to be passed to checker functions in dq.dimensions
+    using a sample(row of data) from a dataset.
+
     Args:
         cSample (pd.Series): Current row of data from input
         pSample (optional): Previous row of data from input (optional argument as 1st row of data has no previous)
     Raises:
         Exception: An Exception is raised if the argument passed is not a pandas series.
     Returns:
-        sDomains (dict): sampleDomain dictionary loaded with data"""
+        sDomain (dict): sampleDomain dictionary loaded with data
+    """
     CurveConfigs = get_Configs('curve')
     RuleConfigs = get_Configs('rules')
-    sDomains = dq.sampleDomains
-    for idx, value in cSample:
-        if idx in CurveConfigs.keys() and len(CurveConfigs[idx].get('rule')) != 0:
+    sDomain = dq.sampleDomains
+    for idx, value in cSample.items():
+        if idx in CurveConfigs.keys() and CurveConfigs[idx].get('rule') is not None:
             rule = CurveConfigs[idx].get('rule')
             if type(rule) is list:
-                sDomains['BitDepth']['curr'] = value
-                sDomains['BitDepth']['prev'] = pSample.at[idx]
+                sDomain['BitDepth']['curr'] = value
+                if type(pSample) is pd.Series:
+                    sDomain['BitDepth']['prev'] = pSample.at[idx]
                 for i in rule:
                     match(i):
                         case 'OnSurface':
-                            sDomains['BitDepth']['surfaceThresh'] = RuleConfigs.get(i)
+                            sDomain['BitDepth']['surfaceThresh'] = RuleConfigs.get(i)
                         case 'BitMove':
-                            sDomains['BitDepth']['bitmoveThresh'] = RuleConfigs.get(i)
+                            sDomain['BitDepth']['bitmoveThresh'] = RuleConfigs.get(i)
                         case default:
                             raise Exception(i + ' is not a recognized BitDepth domain rule.')
             else:
                 match(rule):
                     case 'Hookload':
-                        sDomains['Hookload']['value'] = value
-                        sDomains['Hookload']['thresh'] = RuleConfigs.get(rule)
+                        sDomain['Hookload']['value'] = value
+                        sDomain['Hookload']['thresh'] = RuleConfigs.get(rule)
                     case 'RPM':
-                        sDomains['RPM']['value'] = value
-                        sDomains['RPM']['thresh'] = RuleConfigs.get(rule)
+                        sDomain['RPM']['value'] = value
+                        sDomain['RPM']['thresh'] = RuleConfigs.get(rule)
                     case 'SPP':
-                        sDomains['SPP']['value'] = value
-                        sDomains['SPP']['thresh'] = RuleConfigs.get(rule)
+                        sDomain['SPP']['value'] = value
+                        sDomain['SPP']['thresh'] = RuleConfigs.get(rule)
                     case 'Delta_BPOS':
-                        sDomains['BlockPosition']['curr'] = value
-                        sDomains['BlockPosition']['prev'] = pSample.at[idx]
-                        sDomains['BlockPosition']['deltaThresh'] = RuleConfigs.get(rule)
-    return sDomains
+                        sDomain['BlockPosition']['curr'] = value
+                        if type(pSample) is pd.Series:
+                            sDomain['BlockPosition']['prev'] = pSample.at[idx]
+                        sDomain['BlockPosition']['deltaThresh'] = RuleConfigs.get(rule)
+    return sDomain
 
 def insertDims(dataframe: pd.DataFrame, curveCol:int, dims:dict):
     """Void Function that aids createDimensions by inserting/formatting the calculated dimensions lists into the curveDimension Dataframe (data in main).
@@ -221,11 +252,12 @@ def insertDims(dataframe: pd.DataFrame, curveCol:int, dims:dict):
         Exception: An Exception is raised if any of the arguments are not of their expected types.
     """
     for key, value in dims.items():
-        if key is 'Curve':
+        if key == 'Curve':
             name = value
         else:
             curveCol+= 1
             dataframe.insert(curveCol, key+name, value, True)
+
 
 def hourlyScores(dataframe:pd.DataFrame):
     """Function that calculates and records the Dimension scores for each curve for each hour by using the calcScores() function for each hour of data.
@@ -266,10 +298,11 @@ def calcScores(dataframe:pd.DataFrame):
         scoreDf (pd): Pandas series that includes the dimension scores for each curve.
     """
     #TODO add tests
+    #TODO continue debugging find out why valididy is not being added into scoreDf
     CurveNames = get_Configs('curve').keys()
     Dimensions = get_Configs('dimensions').keys()
     scoreDf = pd.Series()
-    for column in dataframe:
+    for column in dataframe.columns:
         if column in CurveNames:
             currCurve = column
         colcheck = column.split("_")
@@ -323,7 +356,9 @@ def createOverall(series:pd.Series(), hourly=False):
     uniq = []
     acc = [] 
 
+    print(series)
     for idx, value in series.items():
+        print(idx)
         if 'Validity' in idx:
             vali.append(float(value))
         elif 'Frequency' in idx: 
@@ -350,6 +385,7 @@ def createOverall(series:pd.Series(), hourly=False):
                 arr = acc
             case 'Completeness':
                 arr.append(float(series.at[config]))
+        print(arr)
         overallFormat(DQout, arr, config, hourly, hrname)
     
     calcOverallDQ(DQout, hourly, hrname)
@@ -409,6 +445,7 @@ def main():
 
     print('Calculating Scores...')
     datascores = calcScores(data)
+    datascores.to_csv('debug.csv')
     hrscores = hourlyScores(data)
     overall = createOverall(datascores)
     hroverall = hourlyOverall(hrscores)
