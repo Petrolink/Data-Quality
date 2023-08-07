@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import yaml
+import copy
 from datetime import datetime, timedelta
 # Temporary fix that allows dimensions lib to be imported from other dir while the lib is not registered with pip
 # According to https://www.geeksforgeeks.org/python-import-module-outside-directory/
@@ -113,12 +114,13 @@ def createDimensions(dataframe:pd.DataFrame):
     CurveNames = get_Configs('curve').keys()
     AllFreq = pd.DataFrame()
     comp = []
-    sDomains = pd.DataFrame()
+    sDomains = {}
     if GenConfigs['CheckRigStatuses']:
-        print('creating sDomains')
+        print('Creating sDomains')
         sDomains = createSDomains(dataframe)
-        print('Done!')
-    
+        #print(sDomains)
+        print('Complete!')
+
     # Looping through input columns.
     for column in dataframe:
         colNum = 0
@@ -130,7 +132,7 @@ def createDimensions(dataframe:pd.DataFrame):
             #Grabbing the current curves configuration.
             cConfig = CurveConfigs[column]
             #Checking if the column(curve) is listed in Accuracy_configs in config.yaml
-            if column in AccConfigs.keys():
+            if column in AccConfigs['Curves'].keys():
                 accuracy = True
             val = []
             freq = []
@@ -149,13 +151,19 @@ def createDimensions(dataframe:pd.DataFrame):
                         acc.append(dq.Accuracy(i, None, dataframe.iloc[index][paired], None))
                     #First sample/row scenarios.
                     freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), None, GenConfigs.get('freqTol')))
-                    uniq.append(dq.Uniqueness(i))
+                    if GenConfigs['CheckRigStatuses']:
+                        uniq.append(dq.Uniqueness(i, 0.0, dq.checkStationary(sDomains[index]), dq.checkSurface(sDomains[index])))
+                    else:
+                        uniq.append(dq.Uniqueness(i))
                 else:
                     if accuracy:
                         paired = AccCurves[column]
                         acc.append(dq.Accuracy(i, prev, dataframe.iloc[index][paired], dataframe.iloc[index-1][paired]))
                     freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), GenConfigs.get('freqTol')))
-                    uniq.append(dq.Uniqueness(i, prev))
+                    if GenConfigs['CheckRigStatuses']:
+                        uniq.append(dq.Uniqueness(i, prev, dq.checkStationary(sDomains[index]), dq.checkSurface(sDomains[index])))
+                    else:
+                        uniq.append(dq.Uniqueness(i, prev))
                 prev = i
                 index += 1
             # Inserts
@@ -163,16 +171,15 @@ def createDimensions(dataframe:pd.DataFrame):
             AllFreq.insert(count, "Frequency", freq, True)
             count += 1
             if cCheck:
-                dimensions = {'Curve': column, 'Valididty_': val, 'Frequency_': freq, 'Consistency_': cons, 'Uniqueness_': uniq}
+                dimensions = {'Curve': column, 'Validity_': val, 'Frequency_': freq, 'Consistency_': cons, 'Uniqueness_': uniq}
             else:
-                dimensions = {'Curve': column, 'Valididty_': val, 'Frequency_': freq, 'Uniqueness_': uniq}
+                dimensions = {'Curve': column, 'Validity_': val, 'Frequency_': freq, 'Uniqueness_': uniq}
             if accuracy:
                 dimensions['Accuracy_']= acc
             insertDims(dataframe, colNum, dimensions)
     for idx, row, in AllFreq.iterrows():
         comp.append(dq.Completeness(row.tolist()))
     dataframe['Completeness'] = comp
-    dataframe.to_csv('inserts.csv')
 
 def createSDomains(dataframe: pd.DataFrame):
     """Function that returns a dictionary filled with sampleDomains for each row in the dataframe passed by using the sampleDomains() function.
@@ -181,12 +188,12 @@ def createSDomains(dataframe: pd.DataFrame):
     Raises:
         Exception: An Exception is raised if the argument passed is not a pandas dataframe.
     Returns:
-        sDomains
+        sDomains (dict)
     """
     sDomains = {}
     for idx, row in dataframe.iterrows():
         if idx == len(dataframe)/2:
-            print('50%% complete')
+            print('50%' + ' complete')
         if idx == 0: 
             sDomains[idx] = sampleDomain(row)
         else:
@@ -208,7 +215,7 @@ def sampleDomain(cSample: pd.Series, pSample=pd.Series):
     """
     CurveConfigs = get_Configs('curve')
     RuleConfigs = get_Configs('rules')
-    sDomain = dq.sampleDomains
+    sDomain = copy.deepcopy(dq.sampleDomains)
     for idx, value in cSample.items():
         if idx in CurveConfigs.keys() and CurveConfigs[idx].get('rule') is not None:
             rule = CurveConfigs[idx].get('rule')
@@ -220,7 +227,7 @@ def sampleDomain(cSample: pd.Series, pSample=pd.Series):
                     match(i):
                         case 'OnSurface':
                             sDomain['BitDepth']['surfaceThresh'] = RuleConfigs.get(i)
-                        case 'BitMove':
+                        case 'Bit_Move':
                             sDomain['BitDepth']['bitmoveThresh'] = RuleConfigs.get(i)
                         case default:
                             raise Exception(i + ' is not a recognized BitDepth domain rule.')
@@ -302,7 +309,7 @@ def calcScores(dataframe:pd.DataFrame):
     CurveNames = get_Configs('curve').keys()
     Dimensions = get_Configs('dimensions').keys()
     scoreDf = pd.Series()
-    for column in dataframe.columns:
+    for column in dataframe:
         if column in CurveNames:
             currCurve = column
         colcheck = column.split("_")
@@ -356,9 +363,7 @@ def createOverall(series:pd.Series(), hourly=False):
     uniq = []
     acc = [] 
 
-    print(series)
     for idx, value in series.items():
-        print(idx)
         if 'Validity' in idx:
             vali.append(float(value))
         elif 'Frequency' in idx: 
@@ -381,11 +386,11 @@ def createOverall(series:pd.Series(), hourly=False):
                 arr = cons
             case 'Uniqueness': 
                 arr = uniq
+                print(arr)
             case 'Accuracy':
                 arr = acc
             case 'Completeness':
                 arr.append(float(series.at[config]))
-        print(arr)
         overallFormat(DQout, arr, config, hourly, hrname)
     
     calcOverallDQ(DQout, hourly, hrname)
@@ -445,7 +450,7 @@ def main():
 
     print('Calculating Scores...')
     datascores = calcScores(data)
-    datascores.to_csv('debug.csv')
+    print('datascores done!')
     hrscores = hourlyScores(data)
     overall = createOverall(datascores)
     hroverall = hourlyOverall(hrscores)

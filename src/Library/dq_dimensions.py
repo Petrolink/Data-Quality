@@ -2,7 +2,7 @@ import math
 from datetime import datetime, timedelta
 #TODO add this library to pip.
 
-# Samplewise Domain Dictionary (Use in runner as dictionary template to pass to checker functions).
+# Samplewise Domain Dictionary (Use in runner as dictionary template to pass copies/instances to checker functions).
 sampleDomains = {
     'BitDepth': {
         'curr': float,
@@ -115,13 +115,16 @@ def Uniqueness(curr:float, prev=0.0, stationary=False, onsurface=False):
         Boolean: True/Good if either of the rig statuses are true.
         Boolean: True/Good if curr != prev or if curr is a float value and prev is a None value.
         Boolean: False/Bad if curr == prev."""
-    if type(curr) is float and type(prev) is float:
-        if curr == prev:
-            return False
-    elif type(curr) is float and type(prev) is None or type(curr) is float and prev == 0.0:
+    if stationary or onsurface:
         return True
     else:
-        raise Exception('Please ensure to only pass float values as arguments for Uniqueness() or a float as "curr" and a None as "prev" in a 1st sample/row case.')
+        if type(curr) is float and type(prev) is float:
+            if curr == prev:
+                return False
+        elif type(curr) is float and type(prev) is None or type(curr) is float and prev == 0.0:
+            return True
+        else:
+            raise Exception('Please ensure to only pass float values as arguments for Uniqueness() or a float as "curr" and a None as "prev" in a 1st sample/row case.')
     return True
 
 def Consistency(xCurve:float, yCurve:float):
@@ -198,7 +201,9 @@ def checkStationary(sDomain: dict):
         Boolean: True if all curve values are within their corresponding thresholds.
         Boolean: False if any of the curves needed for a stationary check are not included/passed as an argument.
         Boolean: False if any curve value breaks its threshold."""
-
+    if sDomain['BitDepth']['curr'] > sDomain['BitDepth']['surfaceThresh'] and sDomain['RPM']['value'] < sDomain['RPM']['thresh'] and sDomain['SPP']['value'] < sDomain['SPP']['thresh'] and sDomain['Hookload']['value'] >= sDomain['Hookload']['thresh'] and checkDelta(sDomain['BlockPosition']['curr'], sDomain['BlockPosition']['prev'], sDomain['BlockPosition']['deltaThresh']) and checkDelta(sDomain['BitDepth']['curr'], sDomain['BitDepth']['prev'], sDomain['BitDepth']['bitmoveThresh']):
+        return True
+    return False
 def checkSurface(sDomain: dict):
     """Function that performs an on surface check by taking a bitdepth value and a on surface threshold.
     Args:
@@ -209,7 +214,8 @@ def checkSurface(sDomain: dict):
         Boolean: True if depth <= thresh.
         Boolean: False if depth > thresh.
     """
-    
+    if sDomain['BitDepth']['curr'] > sDomain['BitDepth']['surfaceThresh']:
+        return False
     return True
 
 # Score Calculation Functions

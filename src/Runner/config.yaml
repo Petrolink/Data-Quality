@@ -12,7 +12,7 @@ Curve_configs:
     lowLim: -0.0001
     rule: 
       - OnSurface
-      - BitMove
+      - Bit_Move
   DMEA:
     Dtype: float
     upLim: 6000.0
@@ -69,7 +69,7 @@ General_configs:
   DataFile: 'SampleDate_Time2.csv'
   CheckFile: 'consistency_check.csv'
   CalcConsistency: True
-  CheckRigStatuses: False
+  CheckRigStatuses: True
   freqTol: 5.0
 Accuracy_configs:
   Curves:
