@@ -72,10 +72,7 @@ General_configs:
   CheckRigStatuses: True
   freqTol: 5.0
 Accuracy_configs:
-  Curves:
-    DBTM: BPOS
-    BPOS: DBTM
-  Tolerance: 2.0
+  Curve: DBTM
 Dimension_weights:
   Validity: 35
   Frequency: 25

@@ -73,7 +73,7 @@ def fill_dataframe(itype:str):
         Exception: An Exception occurs when the input file is not of type .csv.
         Exception: An Exception occurs when there is no data in the input file.
     Returns:
-        df (pd): Pandas dataframe with input .csv data.
+        df (pd.Dataframe): Pandas dataframe with input .csv data.
     """
     #TODO finish updating file structure/loading and update unittests on Monday, need to make a test config file to use
     configs = get_Configs('general')
@@ -103,24 +103,22 @@ def createDimensions(dataframe:pd.DataFrame):
     Raises:
         TODO: Add exceptions and Test
     """
-    # TODO Break this function up into multiple, too much going on in here.
+    # TODO (if time) Break this function up into multiple, too much going on in here.
     CurveConfigs = get_Configs('curve')
+    CurveNames = get_Configs('curve').keys()
     GenConfigs = get_Configs('general')
+    AccConfigs = get_Configs('accuracy')
     cCheck = GenConfigs.get('CalcConsistency')
     if cCheck:
         consCheck = fill_dataframe('check')
-    AccConfigs = get_Configs('accuracy')
-    AccCurves = AccConfigs.get('Curves')
-    CurveNames = get_Configs('curve').keys()
+    
+    print('Creating sDomains')
+    sDomains = createSDomains(dataframe)
+    print('Complete!')
+
+    # Variables used to calulate and record completion.
     AllFreq = pd.DataFrame()
     comp = []
-    sDomains = {}
-    if GenConfigs['CheckRigStatuses']:
-        print('Creating sDomains')
-        sDomains = createSDomains(dataframe)
-        #print(sDomains)
-        print('Complete!')
-
     # Looping through input columns.
     for column in dataframe:
         colNum = 0
@@ -132,46 +130,67 @@ def createDimensions(dataframe:pd.DataFrame):
             #Grabbing the current curves configuration.
             cConfig = CurveConfigs[column]
             #Checking if the column(curve) is listed in Accuracy_configs in config.yaml
-            if column in AccConfigs['Curves'].keys():
+            if column in AccConfigs['Curve']:
                 accuracy = True
+            # Arrays used to record dimension values for each curve
             val = []
             freq = []
             uniq = [] 
             cons = []
             acc = []
+            sta = []
+            sur = []
             colNum = dataframe.columns.get_loc(column)
+            lastgoodVal = 0.0
             index = 0
-            for i in dataframe[column]:
-                val.append(dq.Validity(i, cConfig.get('upLim'), cConfig.get('lowLim')))
-                if cCheck:
-                    cons.append(dq.Consistency(i, consCheck.iloc[index][column]))
-                if index == 0:
-                    if accuracy:
-                        paired = AccCurves[column]
-                        acc.append(dq.Accuracy(i, None, dataframe.iloc[index][paired], None))
-                    #First sample/row scenarios.
-                    freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), None, GenConfigs.get('freqTol')))
-                    if GenConfigs['CheckRigStatuses']:
-                        uniq.append(dq.Uniqueness(i, 0.0, dq.checkStationary(sDomains[index]), dq.checkSurface(sDomains[index])))
+            # Looping through each curve value (curr) of the current curve
+            for curr in dataframe[column]:
+                if type(curr) is float or type(curr) is int:
+                    sDomain = sDomains[index]
+                    val.append(dq.Validity(curr, cConfig.get('upLim'), cConfig.get('lowLim')))
+                    if cCheck:
+                        cons.append(dq.Consistency(curr, consCheck.iloc[index][column]))
+                    if index == 0:
+                        #First sample/row scenarios.
+                        if accuracy:
+                            acc.append(None)
+                        freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), None, GenConfigs.get('freqTol')))
+                        if GenConfigs['CheckRigStatuses']:
+                            uniq.append(dq.Uniqueness(curr, 0.0, dq.checkStationary(sDomain), dq.checkSurface(sDomain)))
+                            sta.append(dq.checkStationary(sDomain))
+                            sur.append(dq.checkSurface(sDomain))
+                        else:
+                            uniq.append(dq.Uniqueness(curr))
                     else:
-                        uniq.append(dq.Uniqueness(i))
+                        if accuracy:
+                            if sDomain['Hookload']['value'] < sDomain['Hookload']['thresh']:
+                                acc.append(True)
+                            else:
+                                acc.append(dq.Accuracy(abs(sDomain['BitDepth']['curr'] - sDomain['BitDepth']['prev']),  abs(sDomain['BlockPosition']['curr']- sDomain['BlockPosition']['prev']), sDomain['BlockPosition']['deltaThresh']))
+                        freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), GenConfigs.get('freqTol')))
+                        if GenConfigs['CheckRigStatuses']:
+                            uniq.append(dq.Uniqueness(curr, lastgoodVal, dq.checkStationary(sDomain), dq.checkSurface(sDomain)))
+                            sta.append(dq.checkStationary(sDomain))
+                            sur.append(dq.checkSurface(sDomain))
+                        else:
+                            uniq.append(dq.Uniqueness(curr, lastgoodVal))
+                    lastgoodVal = curr
                 else:
-                    if accuracy:
-                        paired = AccCurves[column]
-                        acc.append(dq.Accuracy(i, prev, dataframe.iloc[index][paired], dataframe.iloc[index-1][paired]))
+                    val.append(False)
+                    cons.append(False)
+                    uniq.append(False)
                     freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), GenConfigs.get('freqTol')))
-                    if GenConfigs['CheckRigStatuses']:
-                        uniq.append(dq.Uniqueness(i, prev, dq.checkStationary(sDomains[index]), dq.checkSurface(sDomains[index])))
-                    else:
-                        uniq.append(dq.Uniqueness(i, prev))
-                prev = i
+                    if accuracy: 
+                        acc.append(False)
+            
                 index += 1
+
             # Inserts
             count = 0
             AllFreq.insert(count, "Frequency", freq, True)
             count += 1
             if cCheck:
-                dimensions = {'Curve': column, 'Validity_': val, 'Frequency_': freq, 'Consistency_': cons, 'Uniqueness_': uniq}
+                dimensions = {'Curve': column, 'Validity_': val, 'Frequency_': freq, 'Consistency_': cons, 'Uniqueness_': uniq, 'Stationary_': sta, 'Surface_': sur}
             else:
                 dimensions = {'Curve': column, 'Validity_': val, 'Frequency_': freq, 'Uniqueness_': uniq}
             if accuracy:
@@ -195,13 +214,13 @@ def createSDomains(dataframe: pd.DataFrame):
         if idx == len(dataframe)/2:
             print('50%' + ' complete')
         if idx == 0: 
-            sDomains[idx] = sampleDomain(row)
+            sDomains[idx] = fill_sampleDomain(row)
         else:
-            sDomains[idx] = sampleDomain(row, prev)
+            sDomains[idx] = fill_sampleDomain(row, prev)
         prev = row
     return sDomains
 
-def sampleDomain(cSample: pd.Series, pSample=pd.Series):
+def fill_sampleDomain(cSample: pd.Series, pSample=pd.Series):
     """Function that loads an empty sampleDomain dictionary template from dq.dimensions with data to be passed to checker functions in dq.dimensions
     using a sample(row of data) from a dataset.
 
@@ -215,7 +234,7 @@ def sampleDomain(cSample: pd.Series, pSample=pd.Series):
     """
     CurveConfigs = get_Configs('curve')
     RuleConfigs = get_Configs('rules')
-    sDomain = copy.deepcopy(dq.sampleDomains)
+    sDomain = copy.deepcopy(dq.sampleDomain)
     for idx, value in cSample.items():
         if idx in CurveConfigs.keys() and CurveConfigs[idx].get('rule') is not None:
             rule = CurveConfigs[idx].get('rule')
@@ -265,7 +284,6 @@ def insertDims(dataframe: pd.DataFrame, curveCol:int, dims:dict):
             curveCol+= 1
             dataframe.insert(curveCol, key+name, value, True)
 
-
 def hourlyScores(dataframe:pd.DataFrame):
     """Function that calculates and records the Dimension scores for each curve for each hour by using the calcScores() function for each hour of data.
     Args:
@@ -294,6 +312,34 @@ def hourlyScores(dataframe:pd.DataFrame):
             hrData = pd.concat([hrData, row.to_frame(1).T])
     return hrScores
         
+def dailyScores(dataframe: pd.DataFrame):
+    """Function that calculates and records the Dimension scores for each curve for each day by using the calcScores() function for each days worth of data.
+    Args:
+        dataframe (pd.Dataframe): Pandas dataframe filled with all dimension data for each curve passed in as input.
+    Raises:
+        Exception: An Exception is thrown when the argument passed is not a pandas dataframe.
+    Returns:
+        dayScores (pd): Pandas dataframe that includes the dimension scores for each curve for each hour."""
+    dayScores = pd.DataFrame()
+    dayData = pd.DataFrame()
+    for index, row in dataframe.iterrows():
+        currtime = timeStr(row.at['Time'])
+        if index == 0: 
+            daystart = timeStr(row.at['Time'])
+
+        # Checking if a day of data has been captured
+        if currtime - daystart >= timedelta(days=1):
+            currscore = calcScores(dayData)
+            currscore.name = str(daystart)
+            # Resetting daystart
+            daystart = currtime
+            # Concatenating daily scores to dayScores dataframe and resetting the daily dataframe
+            dayScores = pd.concat([dayScores, currscore.to_frame()], axis=1)
+        else:
+            dayData = pd.concat([dayData, row.to_frame(1).T])
+    return dayScores
+
+
 def calcScores(dataframe:pd.DataFrame):
     """Function that calculates the Dimension scores for each curve using the dimScore function in the dq_dimensions lib.
 
@@ -305,7 +351,6 @@ def calcScores(dataframe:pd.DataFrame):
         scoreDf (pd): Pandas series that includes the dimension scores for each curve.
     """
     #TODO add tests
-    #TODO continue debugging find out why valididy is not being added into scoreDf
     CurveNames = get_Configs('curve').keys()
     Dimensions = get_Configs('dimensions').keys()
     scoreDf = pd.Series()
@@ -321,37 +366,40 @@ def calcScores(dataframe:pd.DataFrame):
                 scoreDf[currCurve + '_' + colcheck[0]] = score
     return scoreDf
 
-def hourlyOverall(dataframe: pd.DataFrame):
-    """Function that creates the hourly aggregation output and calculates the hourly overall scores for the input dataset using the createOverall Function for each hour of scores.
+def aggOverall(dataframe: pd.DataFrame):
+    """Function that creates aggregation output and calculates the aggregation overall scores for the input dataset using the createOverall Function for each agg(hour/day) of scores.
     
     Args: 
-        dataframe (pd): Pandas dataframe that inclues the hourly dimension scores for each curve.
+        dataframe (pd.Dataframe): Pandas dataframe that inclues (hourly/daily) dimension scores for each curve.
     Raises: 
-        Exception: An Exception is raised if the argument passed is not a pandas dataframe"""
-    HrDQout = pd.DataFrame()
+        Exception: An Exception is raised if the argument passed is not a pandas dataframe
+    Returns:
+        aggOut (pd.Dataframe): Pandas dataframe
+    """
+    aggOut = pd.DataFrame()
     weights = get_Configs('dimensions')
     for col in dataframe:
         coldata = createOverall(dataframe[col], True)
-        HrDQout = pd.concat([HrDQout, coldata])
+        aggOut = pd.concat([aggOut, coldata])
 
-    for dim in HrDQout:
+    for dim in aggOut:
         if dim in weights.keys():
-            HrDQout.at['Weightage (%)', dim] = weights.get(dim)
-    totalweight = HrDQout.loc['Weightage (%)'].sum()
-    HrDQout.at['Weightage (%)', 'Overall Score'] = totalweight
-    return HrDQout
+            aggOut.at['Weightage (%)', dim] = weights.get(dim)
+    totalweight = aggOut.loc['Weightage (%)'].sum()
+    aggOut.at['Weightage (%)', 'Overall Score'] = totalweight
+    return aggOut
 
 def createOverall(series:pd.Series(), hourly=False):
     """Function that creates the overall aggregation output and calculates the overall scores for the input dataset using the OverallDim() function in the dq_dimensions lib.
     
     Args:
-        dataframe (pd): Pandas series that includes the dimension scores for each curve.
+        dataframe (pd.Series): Pandas series that includes the dimension scores for each curve.
     Raises:
         Exception: An Exception is raised if the argument passed is not a pandas dataframe.
     Returns:
-        DQout (pd): Pandas dataframe that includes the overall dimension scores and their corresponding weights set by user in config.yaml
+        DQout (pd.Dataframe): Pandas dataframe that includes the overall dimension scores and their corresponding weights set by user in config.yaml
     """
-    #TODO break up and test
+    #TODO test
     DQout = pd.DataFrame()
     weights = get_Configs('dimensions')
     hrname = ''
@@ -386,7 +434,6 @@ def createOverall(series:pd.Series(), hourly=False):
                 arr = cons
             case 'Uniqueness': 
                 arr = uniq
-                print(arr)
             case 'Accuracy':
                 arr = acc
             case 'Completeness':
@@ -443,18 +490,28 @@ def main():
     print('Loading Input...')
     data = fill_dataframe('input')
     print('Done!')
+    print()
 
     print('Calculating and Recording Dimensions...')
     createDimensions(data)
     print('Done!')
+    print()
 
     print('Calculating Scores...')
     datascores = calcScores(data)
-    print('datascores done!')
+    print('Overall scores calculated.')
     hrscores = hourlyScores(data)
+    print('Hourly scores calculated.')
+    dailyscores = dailyScores(data)
+    print('Daily scores calculated.')
     overall = createOverall(datascores)
-    hroverall = hourlyOverall(hrscores)
+    print('Overall DQ calculated.')
+    hroverall = aggOverall(hrscores)
+    print('Hourly DQ\'s calulated.')
+    dailyoverall = aggOverall(dailyscores)
+    print('Daily DQ\'s calculated.')
     print('Done!')
+    print()
 
     print('Outputting Data...')
     data.to_csv("curve_dimData.csv")
@@ -462,6 +519,8 @@ def main():
     overall.to_csv("overall.csv")
     hrscores.to_csv('hrscores.csv')
     hroverall.to_csv('hroverall.csv')
+    dailyscores.to_csv('dailyscores.csv')
+    dailyoverall.to_csv('dailyoverall.csv')
     print('Done!') 
 
 if __name__ == "__main__":

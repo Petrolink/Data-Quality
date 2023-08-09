@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 #TODO add this library to pip.
 
 # Samplewise Domain Dictionary (Use in runner as dictionary template to pass copies/instances to checker functions).
-sampleDomains = {
+sampleDomain = {
     'BitDepth': {
         'curr': float,
         'prev': float, 
@@ -29,7 +29,7 @@ sampleDomains = {
     }
 }
 
-# Curve Level Functions
+# Curve Level Dimension Functions
 
 def Validity(cValue:float, upLim:float, lowLim:float):
     """Function that determines the valididty of the current sample/row by checking if the curve value passed is within an upper and lower limit
@@ -46,7 +46,7 @@ def Validity(cValue:float, upLim:float, lowLim:float):
     """
     if upLim <= lowLim:
         raise Exception('Please ensure the upper limit argument is passed before the lower limit argument. ie. (cValue, upLim, lowLim)')
-    if cValue > upLim or cValue < lowLim:
+    if cValue >= upLim or cValue <= lowLim:
         return False
     return True
 
@@ -113,7 +113,7 @@ def Uniqueness(curr:float, prev=0.0, stationary=False, onsurface=False):
         Exception: An exception is raised if the arguments passed are not of their set type (prev is an optional argument).
     Returns:
         Boolean: True/Good if either of the rig statuses are true.
-        Boolean: True/Good if curr != prev or if curr is a float value and prev is a None value.
+        Boolean: True/Good if curr != prev or if curr is a float value and prev is a None value (1st row of data).
         Boolean: False/Bad if curr == prev."""
     if stationary or onsurface:
         return True
@@ -145,50 +145,26 @@ def Consistency(xCurve:float, yCurve:float):
         return False
     return True
 
-def Accuracy(currBD=0.0, prevBD=0.0, currBH=0.0, prevBH=0.0, tol=0.0):
-    """Function that determines the accuracy of a sample/row by taking the differnece of the current and previous BitDepth values and comparing it to the difference of the current and previous BlockHeight values. Ensuring that the BitDepth is simultaneously moving with the BlockHeight.
+def Accuracy(val: float, valcheck:float, tol=0.0001):
+    """Function that determines the accuracy of a sample/row by ensuring that the delta of val and valcheck is <= tol (set by user, or 0.0001 when not specified).
     
     Args: 
-        currBD (float): current BitDepth value
-        prevBD (float): previous BitDepth value
-        currBH (float): current BlockHeight value
-        prevBH (float): previous BlockHeight value 
-        tol (Float or None): Accuracy tolerance specified by user, defaulted to 0 when not passed.
+        val (float): Value whose accuracy is being determined.
+        valcheck (float): Value being used to determine the accuracy of val.
+        tol (Float or None): Accuracy tolerance specified by user, (OPTIONAL) defaulted to 0.0001 when not passed.
     Raises: 
-        Exception: An exception is raised if all curr/prev arguments are not float values.
+        Exception: An exception is raised if any of the values passed are not float values.
     Returns:
-        Boolean: True
-        Boolean: False
-        None: Returns None if any of the paired curr/prev arguments passed are null.
+        Boolean: True if the delta of val - valcheck <= tol
+        Boolean: False if the delta of val - valcheck > tol
     """
-    if currBD == 0.0 or currBD is None and currBH == 0.0 or currBH is None:
-        return None
-    elif prevBD == 0.0 or prevBD is None and prevBH == 0.0 or prevBH is None:
-        return None
-    else:
-        BDdelta = abs(currBD - prevBD)
-        BPdelta = abs(currBH - prevBH)
-    return checkDelta(BDdelta, BPdelta, tol)
-
-# Checker Functions
-
-def checkDelta(valOne: float, valTwo: float, tol: float):
-    """Function that determines if the delta between two values lies within a givin tolerance.
-    
-    Args:
-        valOne (float): 1st value to be used in calculating the delta
-        valTwo (float): 2nd value to be used in calculating the delta
-        tol (float): Delta tolerance
-    Raises:
-        Exception: An exception is raised if any of the arguments passed are not numerical.
-    Returns: 
-        Boolean: True if the calculated delta lies within the specified tolerance.
-    """
-    Delta = abs(valOne - valTwo)
+    Delta = abs(val - valcheck)
     if Delta > tol:
         return False
     return True
 
+# Rig_Status Check Functions
+    
 def checkStationary(sDomain: dict):
     """Function that performs a stationary check by utilizing the following curves and their thresholds: 
     BitDepth, RPM, SPP, Hookload and BlockPosition.
@@ -196,26 +172,40 @@ def checkStationary(sDomain: dict):
     Args:
         sDomain (dict): 
     Raises:
-        Exception: An Exception is raised if
+        Exception: An Exception is raised if the argument passed is not of type "dict"
+        Exception: An Exception is raised if any of the required data is None or non-numerical.
+        Exception: An Exception is raised if passed a dictionary that does not include the required fields.
     Returns:
         Boolean: True if all curve values are within their corresponding thresholds.
         Boolean: False if any of the curves needed for a stationary check are not included/passed as an argument.
         Boolean: False if any curve value breaks its threshold."""
-    if sDomain['BitDepth']['curr'] > sDomain['BitDepth']['surfaceThresh'] and sDomain['RPM']['value'] < sDomain['RPM']['thresh'] and sDomain['SPP']['value'] < sDomain['SPP']['thresh'] and sDomain['Hookload']['value'] >= sDomain['Hookload']['thresh'] and checkDelta(sDomain['BlockPosition']['curr'], sDomain['BlockPosition']['prev'], sDomain['BlockPosition']['deltaThresh']) and checkDelta(sDomain['BitDepth']['curr'], sDomain['BitDepth']['prev'], sDomain['BitDepth']['bitmoveThresh']):
-        return True
+    try: 
+        if sDomain['BitDepth']['curr'] > sDomain['BitDepth']['surfaceThresh'] and sDomain['RPM']['value'] < sDomain['RPM']['thresh'] and sDomain['SPP']['value'] < sDomain['SPP']['thresh'] and sDomain['Hookload']['value'] >= sDomain['Hookload']['thresh'] and Accuracy(sDomain['BlockPosition']['curr'], sDomain['BlockPosition']['prev'], sDomain['BlockPosition']['deltaThresh']) and Accuracy(sDomain['BitDepth']['curr'], sDomain['BitDepth']['prev'], sDomain['BitDepth']['bitmoveThresh']):
+            return True
+    except:
+        raise Exception('Please Ensure to include the required fields used in checkStationary, in the dictionary passed as an arg to checkStationary(). The dq_dimensions lib provides a template "sampleDomain" dictionary for users.')
     return False
+
 def checkSurface(sDomain: dict):
     """Function that performs an on surface check by taking a bitdepth value and a on surface threshold.
     Args:
         sDomain (dict): 
     Raises:
-        Exception: An exception is raised if the arguments passed are not numerical values.
+        Exception: An exception is raised if the argument passed is not of type "dict".
+        Exception: An exception is raised if the BitDepth data required is None or non-numerical.
+        Exception: An Exception is raised if passed a dictionary that does not include the required fields.
     Returns:
         Boolean: True if depth <= thresh.
         Boolean: False if depth > thresh.
     """
-    if sDomain['BitDepth']['curr'] > sDomain['BitDepth']['surfaceThresh']:
-        return False
+    if type(sDomain['BitDepth']['curr']) is not float or type(sDomain['BitDepth']['surfaceThresh']) is not float:
+        raise Exception('Please ensure to only pass dictionaries with numerical float data.')
+    else:
+        try:
+            if sDomain['BitDepth']['curr'] > sDomain['BitDepth']['surfaceThresh']:
+                return False
+        except:
+            raise Exception('Please Ensure to include the required fields used in checkStationary, in the dictionary passed as an arg to checkSurface(). The dq_dimensions lib provides a template "sampleDomain" dictionary for users.')
     return True
 
 # Score Calculation Functions
