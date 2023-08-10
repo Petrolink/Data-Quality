@@ -170,20 +170,31 @@ def checkStationary(sDomain: dict):
     BitDepth, RPM, SPP, Hookload and BlockPosition.
     
     Args:
-        sDomain (dict): 
+        sDomain (dict): Dictionary filled with required data from each row of input for rig status checks (PLEASE USE TEMPLATE "sampleDomain" DICT from dq_dimensions.py)
     Raises:
         Exception: An Exception is raised if the argument passed is not of type "dict"
-        Exception: An Exception is raised if any of the required data is None or non-numerical.
-        Exception: An Exception is raised if passed a dictionary that does not include the required fields.
+        Exception: An Exception is raised if the dictionary passed is not an instance of the "sampleDomain" dictionary in dq_dimensions.py.
     Returns:
         Boolean: True if all curve values are within their corresponding thresholds.
-        Boolean: False if any of the curves needed for a stationary check are not included/passed as an argument.
+        Boolean: False if any of the required values in the sDomain that are needed for a stationary check are empty.
         Boolean: False if any curve value breaks its threshold."""
-    try: 
+    # Ensuring the dictionary passed as input contains the same curve fields as the sampleDomain dictionary template.
+    if sDomain.keys() != sampleDomain.keys():
+        raise Exception('Please ensure you are passing a copy/instance of the sampleDomain dictionary found in dq_dimensions.py.')
+    # Ensuring all required fields are filled with data
+    required = True
+    for key1, val1 in sDomain.items():
+        if val1.keys() != sampleDomain[key1].keys():
+            raise Exception('Please ensure you are passing a copy/instance of the sampleDomain dictionary found in dq_dimensions.py.')
+        for key2, val2 in val1.items():
+            # Checking if expected numerical data is empty.
+            if bool(val2) is False and val2 != 0:
+                required = False
+    
+    if required:
+        # Stationary rule logic 
         if sDomain['BitDepth']['curr'] > sDomain['BitDepth']['surfaceThresh'] and sDomain['RPM']['value'] < sDomain['RPM']['thresh'] and sDomain['SPP']['value'] < sDomain['SPP']['thresh'] and sDomain['Hookload']['value'] >= sDomain['Hookload']['thresh'] and Accuracy(sDomain['BlockPosition']['curr'], sDomain['BlockPosition']['prev'], sDomain['BlockPosition']['deltaThresh']) and Accuracy(sDomain['BitDepth']['curr'], sDomain['BitDepth']['prev'], sDomain['BitDepth']['bitmoveThresh']):
             return True
-    except:
-        raise Exception('Please Ensure to include the required fields used in checkStationary, in the dictionary passed as an arg to checkStationary(). The dq_dimensions lib provides a template "sampleDomain" dictionary for users.')
     return False
 
 def checkSurface(sDomain: dict):
@@ -192,20 +203,25 @@ def checkSurface(sDomain: dict):
         sDomain (dict): 
     Raises:
         Exception: An exception is raised if the argument passed is not of type "dict".
-        Exception: An exception is raised if the BitDepth data required is None or non-numerical.
         Exception: An Exception is raised if passed a dictionary that does not include the required fields.
     Returns:
         Boolean: True if depth <= thresh.
         Boolean: False if depth > thresh.
     """
-    if type(sDomain['BitDepth']['curr']) is not float or type(sDomain['BitDepth']['surfaceThresh']) is not float:
-        raise Exception('Please ensure to only pass dictionaries with numerical float data.')
-    else:
-        try:
-            if sDomain['BitDepth']['curr'] > sDomain['BitDepth']['surfaceThresh']:
-                return False
-        except:
-            raise Exception('Please Ensure to include the required fields used in checkStationary, in the dictionary passed as an arg to checkSurface(). The dq_dimensions lib provides a template "sampleDomain" dictionary for users.')
+    # Ensuring the dictionary passed as input contains the same curve fields as the sampleDomain dictionary template.
+    if sDomain.keys() != sampleDomain.keys():
+        raise Exception('Please ensure you are passing a copy/instance of the sampleDomain dictionary found in dq_dimensions.py.')
+    # Ensuring all required fields are filled with data
+    for key, val in sDomain.items():
+        if val.keys() != sampleDomain[key].keys():
+            raise Exception('Please ensure you are passing a copy/instance of the sampleDomain dictionary found in dq_dimensions.py.')
+    # Checking if expected numerical data is empty.    
+    if (bool(sDomain['BitDepth']['curr']) is False and sDomain['BitDepth']['curr'] != 0) or (bool(sDomain['BitDepth']['surfaceThresh']) is False and sDomain['BitDepth']['surfaceThresh'] != 0):
+        return False
+    
+    # Surface rule logic 
+    if sDomain['BitDepth']['curr'] > sDomain['BitDepth']['surfaceThresh']:
+        return False
     return True
 
 # Score Calculation Functions

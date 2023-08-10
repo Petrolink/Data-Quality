@@ -16,7 +16,7 @@ def yaml_loader(filepath):
         data = yaml.load(file_descriptor, Loader=yaml.Loader)
     return data
 
-def timeStr(string):
+def timeStr(string: str):
     """Function that takes in a string and returns it as a datetime.
     Args: 
         string (str): String value containing a UTC timestamp that follows ISO standards.
@@ -24,8 +24,6 @@ def timeStr(string):
         Exception: An exception is thrown when a non string value is passed as an argument.
     Returns:
         A datetime value created from the timestamp string."""
-    if type(string) is not str: 
-        raise Exception('Please only pass string values to timeStr.')
     return datetime.fromisoformat(string)
 
 def get_Configs(configType):
