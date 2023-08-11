@@ -26,18 +26,21 @@ def timeStr(string: str):
         A datetime value created from the timestamp string."""
     return datetime.fromisoformat(string)
 
-def get_Configs(configType):
+def get_Configs(configType:str, testing=False):
     """Function that retrieves the type of configuration and returns them as a iterable dictionary.
     Args:
         configType (str): String key value used to request types of user configurations from config.yaml
+        testing (bool): A testing toggle used only by unittesting suite.
     Raises:
         Exception: An exception is raised when the argument passed is not a str value.
     Returns:
-        
+        configs['REQUESTED_CONFIG_FIELD'] (dict) : The requested configuration field.
     """
-    if type(configType) is not str:
-        raise Exception('Please only provide a key string value (ie. "curve") when using get_Configs to retrieve a type of yaml configuration.')
-    configs = yaml_loader('config.yaml')
+    if testing:
+        configs = yaml_loader('unittest_inputs/testconfigs.yaml')
+    else:
+        configs = yaml_loader('config.yaml')
+
     match(str.lower(configType)):
         case 'curve':
             if len(configs['Curve_configs']) == 0:
@@ -49,6 +52,7 @@ def get_Configs(configType):
             return configs['General_configs']
         case 'accuracy':
             if len(configs['Accuracy_configs']) == 0:
+                print('triggered')
                 raise Exception('Expecting input for Accuracy_conifgs in config.yaml')
             return configs['Accuracy_configs']
         case 'dimensions':
@@ -62,10 +66,11 @@ def get_Configs(configType):
         case default:
             raise Exception('The value passed was an invalid config type key. Please pass a valid key: "curve"')
 
-def fill_dataframe(itype:str):
+def fill_dataframe(itype:str, testing=False):
     """Reads in a .csv file and returns a mutable dataframe filled with .csv data.
     Args: 
         itype (str): An input type key word (input or check)
+        testing (bool): A testing toggle used only in unittesting suite.
     Raises:
         Exception: An Exception occurs when the file path parameter is an empty string.
         Exception: An Exception occurs when the input file is not of type .csv.
@@ -73,25 +78,30 @@ def fill_dataframe(itype:str):
     Returns:
         df (pd.Dataframe): Pandas dataframe with input .csv data.
     """
-    #TODO finish updating file structure/loading and update unittests on Monday, need to make a test config file to use
-    configs = get_Configs('general')
+    if testing:
+        configs = get_Configs('general', True)
+        filename = 'src/Runner/unittest_inputs'
+    else:
+        configs = get_Configs('general')
+        filename = 'input'
+
     if len(itype) == 0:
         raise Exception('Please provide a valid input type key-word ("input" or "check"), empty strings will not be accepted.')
     match(str.lower(itype)):
         case 'input':
             if not configs.get('DataFile').endswith('csv'):
                 raise Exception('Expecting a .csv file name for the DataFile config in General_configs.')
-            csvfile = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'input', configs.get('DataFile')))
+            csvfile = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', filename, configs.get('DataFile')))
         case 'check':
             if not configs.get('CheckFile').endswith('csv'):
                 raise Exception('Expecting a .csv file name for the CheckFile config in General_configs.')
-            csvfile = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'input', configs.get('CheckFile')))
+            csvfile = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', filename, configs.get('CheckFile')))
         case default:
             raise Exception('The value passed is an invalid input type key. Please Specify "input" or "check".')
-    df = pd.DataFrame()
-    df = pd.read_csv(csvfile)
-    if df.empty:
-        raise Exception("Expecting file with data")
+    try:
+        df = pd.read_csv(csvfile)
+    except Exception as e:
+        raise Exception(e)
     return df
 
 def createDimensions(dataframe:pd.DataFrame):
@@ -198,18 +208,19 @@ def createDimensions(dataframe:pd.DataFrame):
         comp.append(dq.Completeness(row.tolist()))
     dataframe['Completeness'] = comp
 
-def createSDomains(dataframe: pd.DataFrame):
+def createSDomains(dataframe: pd.DataFrame, testing=False):
     """Function that returns a dictionary filled with sampleDomains for each row in the dataframe passed by using the sampleDomains() function.
     Args:
         dataframe (pd.Dataframe): Pandas dataframe with input .csv data
+        testing (bool): A testing toggle used only in unittesting suite.
     Raises:
         Exception: An Exception is raised if the argument passed is not a pandas dataframe.
     Returns:
-        sDomains (dict)
+        sDomains (dict): Dictionary of sDomain dictionaries for every row in the input data.
     """
     sDomains = {}
     for idx, row in dataframe.iterrows():
-        if idx == len(dataframe)/2:
+        if idx == len(dataframe)/2 and testing == False:
             print('50%' + ' complete')
         if idx == 0: 
             sDomains[idx] = fill_sampleDomain(row)
@@ -230,40 +241,43 @@ def fill_sampleDomain(cSample: pd.Series, pSample=pd.Series):
     Returns:
         sDomain (dict): sampleDomain dictionary loaded with data
     """
-    CurveConfigs = get_Configs('curve')
-    RuleConfigs = get_Configs('rules')
-    sDomain = copy.deepcopy(dq.sampleDomain)
-    for idx, value in cSample.items():
-        if idx in CurveConfigs.keys() and CurveConfigs[idx].get('rule') is not None:
-            rule = CurveConfigs[idx].get('rule')
-            if type(rule) is list:
-                sDomain['BitDepth']['curr'] = value
-                if type(pSample) is pd.Series:
-                    sDomain['BitDepth']['prev'] = pSample.at[idx]
-                for i in rule:
-                    match(i):
-                        case 'OnSurface':
-                            sDomain['BitDepth']['surfaceThresh'] = RuleConfigs.get(i)
-                        case 'Bit_Move':
-                            sDomain['BitDepth']['bitmoveThresh'] = RuleConfigs.get(i)
-                        case default:
-                            raise Exception(i + ' is not a recognized BitDepth domain rule.')
-            else:
-                match(rule):
-                    case 'Hookload':
-                        sDomain['Hookload']['value'] = value
-                        sDomain['Hookload']['thresh'] = RuleConfigs.get(rule)
-                    case 'RPM':
-                        sDomain['RPM']['value'] = value
-                        sDomain['RPM']['thresh'] = RuleConfigs.get(rule)
-                    case 'SPP':
-                        sDomain['SPP']['value'] = value
-                        sDomain['SPP']['thresh'] = RuleConfigs.get(rule)
-                    case 'Delta_BPOS':
-                        sDomain['BlockPosition']['curr'] = value
-                        if type(pSample) is pd.Series:
-                            sDomain['BlockPosition']['prev'] = pSample.at[idx]
-                        sDomain['BlockPosition']['deltaThresh'] = RuleConfigs.get(rule)
+    if type(cSample) is pd.Series:
+        CurveConfigs = get_Configs('curve')
+        RuleConfigs = get_Configs('rules')
+        sDomain = copy.deepcopy(dq.sampleDomain)
+        for idx, value in cSample.items():
+            if idx in CurveConfigs.keys() and CurveConfigs[idx].get('rule') is not None:
+                rule = CurveConfigs[idx].get('rule')
+                if type(rule) is list:
+                    sDomain['BitDepth']['curr'] = value
+                    if type(pSample) is pd.Series:
+                        sDomain['BitDepth']['prev'] = pSample.at[idx]
+                    for i in rule:
+                        match(i):
+                            case 'OnSurface':
+                                sDomain['BitDepth']['surfaceThresh'] = RuleConfigs.get(i)
+                            case 'Bit_Move':
+                                sDomain['BitDepth']['bitmoveThresh'] = RuleConfigs.get(i)
+                            case default:
+                                raise Exception(i + ' is not a recognized BitDepth domain rule.')
+                else:
+                    match(rule):
+                        case 'Hookload':
+                            sDomain['Hookload']['value'] = value
+                            sDomain['Hookload']['thresh'] = RuleConfigs.get(rule)
+                        case 'RPM':
+                            sDomain['RPM']['value'] = value
+                            sDomain['RPM']['thresh'] = RuleConfigs.get(rule)
+                        case 'SPP':
+                            sDomain['SPP']['value'] = value
+                            sDomain['SPP']['thresh'] = RuleConfigs.get(rule)
+                        case 'Delta_BPOS':
+                            sDomain['BlockPosition']['curr'] = value
+                            if type(pSample) is pd.Series:
+                                sDomain['BlockPosition']['prev'] = pSample.at[idx]
+                            sDomain['BlockPosition']['deltaThresh'] = RuleConfigs.get(rule)
+    else:
+        raise Exception('Please only pass pandas series to fill_sampleDomain.')
     return sDomain
 
 def insertDims(dataframe: pd.DataFrame, curveCol:int, dims:dict):
@@ -282,62 +296,43 @@ def insertDims(dataframe: pd.DataFrame, curveCol:int, dims:dict):
             curveCol+= 1
             dataframe.insert(curveCol, key+name, value, True)
 
-def hourlyScores(dataframe:pd.DataFrame):
-    """Function that calculates and records the Dimension scores for each curve for each hour by using the calcScores() function for each hour of data.
+def aggScores(dataframe:pd.DataFrame, aggType:str):
+    """Function that calculates and records the Dimension scores for each curve for each [TYPE OF AGGREGATION] by using the calcScores() function for each (hour/day) of data.
     Args:
         dataframe (pd): Pandas dataframe filled with all dimension data for each curve passed in as input.
+        aggType (str): Desired type of aggregation, "hourly" or "daily".
     Raises:
         Exception: An Exception is thrown when the argument passed is not a pandas dataframe.
     Returns:
-        hrScores (pd): Pandas dataframe that includes the dimension scores for each curve for each hour."""
-    hrScores = pd.DataFrame()
-    hrData = pd.DataFrame()
+        aggScores (pd): Pandas dataframe that includes the dimension scores for each curve for each [TYPE OF AGGREGATION REQUESTED]."""
+    aggScores = pd.DataFrame()
+    aggData = pd.DataFrame()
+    match(aggType):
+        case 'hourly':
+            agg = timedelta(hours=1)
+        case 'daily':
+            agg = timedelta(days=1)
+        case default:
+            raise Exception(aggType + ' is not a valid aggType. Accepted: "hourly" or "daily".')
+
     for index, row in dataframe.iterrows():
         currtime = timeStr(row.at['Time'])
         if index == 0:
-            hrstart = timeStr(row.at['Time'])
+            aggStart = timeStr(row.at['Time'])
 
         # Checking if an hour of data has been captured.
-        if currtime - hrstart >= timedelta(hours=1):
-            currscore = calcScores(hrData)
-            currscore.name = str(hrstart)
+        if currtime - aggStart >= agg:
+            currscore = calcScores(aggData)
+            currscore.name = str(aggStart)
             # Resetting hrstart.
-            hrstart = currtime
+            aggStart = currtime
             # Concatenating hourly scores to hrScores dataframe and reseting the hourly dataframe.
-            hrScores = pd.concat([hrScores, currscore.to_frame()], axis=1)
-            hrData = pd.DataFrame()
+            aggScores = pd.concat([aggScores, currscore.to_frame()], axis=1)
+            aggData = pd.DataFrame()
         else:
-            hrData = pd.concat([hrData, row.to_frame(1).T])
-    return hrScores
+            aggData = pd.concat([aggData, row.to_frame(1).T])
+    return aggScores
         
-def dailyScores(dataframe: pd.DataFrame):
-    """Function that calculates and records the Dimension scores for each curve for each day by using the calcScores() function for each days worth of data.
-    Args:
-        dataframe (pd.Dataframe): Pandas dataframe filled with all dimension data for each curve passed in as input.
-    Raises:
-        Exception: An Exception is thrown when the argument passed is not a pandas dataframe.
-    Returns:
-        dayScores (pd): Pandas dataframe that includes the dimension scores for each curve for each hour."""
-    dayScores = pd.DataFrame()
-    dayData = pd.DataFrame()
-    for index, row in dataframe.iterrows():
-        currtime = timeStr(row.at['Time'])
-        if index == 0: 
-            daystart = timeStr(row.at['Time'])
-
-        # Checking if a day of data has been captured
-        if currtime - daystart >= timedelta(days=1):
-            currscore = calcScores(dayData)
-            currscore.name = str(daystart)
-            # Resetting daystart
-            daystart = currtime
-            # Concatenating daily scores to dayScores dataframe and resetting the daily dataframe
-            dayScores = pd.concat([dayScores, currscore.to_frame()], axis=1)
-        else:
-            dayData = pd.concat([dayData, row.to_frame(1).T])
-    return dayScores
-
-
 def calcScores(dataframe:pd.DataFrame):
     """Function that calculates the Dimension scores for each curve using the dimScore function in the dq_dimensions lib.
 
@@ -348,20 +343,22 @@ def calcScores(dataframe:pd.DataFrame):
     Returns: 
         scoreDf (pd): Pandas series that includes the dimension scores for each curve.
     """
-    #TODO add tests
-    CurveNames = get_Configs('curve').keys()
-    Dimensions = get_Configs('dimensions').keys()
-    scoreDf = pd.Series()
-    for column in dataframe:
-        if column in CurveNames:
-            currCurve = column
-        colcheck = column.split("_")
-        if colcheck[0] in Dimensions:
-            score = dq.dimScore(list(dataframe[column]))
-            if colcheck[0] == 'Completeness':
-                scoreDf[colcheck[0]] = score
-            else:
-                scoreDf[currCurve + '_' + colcheck[0]] = score
+    if type(dataframe) is pd.DataFrame:
+        CurveNames = get_Configs('curve').keys()
+        Dimensions = get_Configs('dimensions').keys()
+        scoreDf = pd.Series()
+        for column in dataframe:
+            if column in CurveNames:
+                currCurve = column
+            colcheck = column.split("_")
+            if colcheck[0] in Dimensions:
+                score = dq.dimScore(list(dataframe[column]))
+                if colcheck[0] == 'Completeness':
+                    scoreDf[colcheck[0]] = score
+                else:
+                    scoreDf[currCurve + '_' + colcheck[0]] = score
+    else:
+        raise Exception('Please only pass pandas Dataframes to calcScores().')
     return scoreDf
 
 def aggOverall(dataframe: pd.DataFrame):
@@ -498,9 +495,9 @@ def main():
     print('Calculating Scores...')
     datascores = calcScores(data)
     print('Overall scores calculated.')
-    hrscores = hourlyScores(data)
+    hrscores = aggScores(data, 'hourly')
     print('Hourly scores calculated.')
-    dailyscores = dailyScores(data)
+    dailyscores = aggScores(data, 'daily')
     print('Daily scores calculated.')
     overall = createOverall(datascores)
     print('Overall DQ calculated.')

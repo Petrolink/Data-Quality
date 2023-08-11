@@ -1,6 +1,7 @@
 import unittest
 import math
 import pandas as pd
+import numpy as np
 from datetime import datetime
 # Temporary fix that allows dimensions lib to be imported from other dir while the lib is not registered with pip
 # According to https://www.geeksforgeeks.org/python-import-module-outside-directory/
@@ -15,6 +16,10 @@ class Testdq_dimensions_runner(unittest.TestCase):
         self.current = datetime.fromisoformat('2020-03-08T19:00:32.9150000Z')
         self.previous = datetime.fromisoformat('2020-03-08T19:00:31.9050000Z')
         self.badprev = datetime.fromisoformat('2020-03-08T19:00:30.8920000Z')
+        self.testinput = pd.read_csv(os.path.join(sys.path[0], 'unittest_inputs/testinput.csv'))
+        self.dimdata = pd.read_csv(os.path.join(sys.path[0], 'unittest_inputs/testdimdata.csv'), low_memory=False)
+        self.dimdata = self.dimdata.replace(np.nan, None, regex=True)
+        #print(self.dimdata.dtypes)
         self.test = [2.4, 3.4]
         self.baddict = {
             'BitDepth':{
@@ -73,8 +78,34 @@ class Testdq_dimensions_runner(unittest.TestCase):
                 'thresh': 100.0
             }
         }
+        self.empty = {
+            'BitDepth': {
+                'curr': float,
+                'prev': 66.12, 
+                'surfaceThresh': 328.0,
+                'bitmoveThresh': 0.2
+            }, 
+            'BlockPosition': {
+                'curr': 1.54,
+                'prev': 0.98,
+                'deltaThresh': 0.1
+            },
+            'RPM': {
+                'value': 0, 
+                'thresh': 5.0
+            },
+            'SPP': {
+                'value': 0,
+                'thresh': 500.0
+            }, 
+            'Hookload': {
+                'value': 25.755,
+                'thresh': 100.0
+            }
+        }
 
-    # Testing Dimension Functions 
+
+    # Testing Dimension Functions in dq_dimensions.py
 
     def test_Validity(self):
         """Testing Valididty() function in dq_dimensions.py that takes in a curve value argument(float) and determines if it is within the upper and lower limit arguments passed by user."""
@@ -180,9 +211,11 @@ class Testdq_dimensions_runner(unittest.TestCase):
         self.assertRaises(Exception, dq_dimensions.checkStationary, self.baddict)
         # Ensuring checkStationary() returns True when passed an sDomain that satisfies the stationary rule.
         self.assertTrue(dq_dimensions.checkStationary(self.stationary))
-        # Ensuring checkStationary() returns False if any curve value breaks its threshold rule.
         # Ensuring checkStationary() returns False if any of the required values are included in the dictionary but empty.
-
+        self.assertFalse(dq_dimensions.checkStationary(self.empty))
+        # Ensuring checkStationary() returns False if any curve value breaks its threshold rule.
+        self.empty['BitDepth']['curr'] = 400
+        self.assertFalse(dq_dimensions.checkStationary(self.empty))
 
     def testcheckSurface(self):
         """Testing checkSurface Function in dq_dimensions that takes in a sDomain dict (can be copied from dqdimensions) and performs a surface check by checking the value and threshold of the bitdepth curve for the row."""
@@ -196,8 +229,10 @@ class Testdq_dimensions_runner(unittest.TestCase):
         # Ensuring checkSurface() returns True when passed an sDomain that satisfies the surface rule.
         self.assertTrue(dq_dimensions.checkSurface(self.surface))
         # Ensuring checkSurface() returns False if BitDepth value or threshold fields are empty.
-        # Ensruing checkSurface() returns True if the sDomain does not pass the surface rule.
-
+        self.assertFalse(dq_dimensions.checkSurface(self.empty))
+        # Ensruing checkSurface() returns False if the sDomain does not pass the surface rule.
+        self.empty['BitDepth']['curr'] = 400
+        self.assertFalse(dq_dimensions.checkSurface(self.empty))
     # Testing Score Calculation Functions
 
     def testdimScore(self):
@@ -259,21 +294,26 @@ class Testdq_dimensions_runner(unittest.TestCase):
         # Testing passing in an empty and null string ensuring an exception is thrown.
         self.assertRaises(Exception, dq_runner.fill_dataframe)
         self.assertRaises(Exception, dq_runner.fill_dataframe, '')
+        # Ensruing fill_dataframe() throws an exception when passed an empty csv file.
+        self.assertRaises(Exception, dq_runner.fill_dataframe, 'input', True)
         # Ensuring fill_dataframe() throws an exception when the configured file names do not end in .csv
-        #TODO create bad config file and use it to test incorrect file names passed as configuration.
+        self.assertRaises(Exception, dq_runner.fill_dataframe, 'check', True)
         # Ensuring fill_dataframe() returns a pandas dataframe instance when valid key-values are passed ("input" and "check")
         self.assertIsInstance(dq_runner.fill_dataframe('input'), pd.DataFrame)
         self.assertIsInstance(dq_runner.fill_dataframe('check'), pd.DataFrame)
 
     def test_get_Configs(self):
         """Testing get_Configs() function in dq_runner.py that retrieves type of configuration requested by user with a string key value (ie. "curve")."""
-        #Ensuring get_Configs throws an exception when the argument passed is not a string.
+        # Ensuring get_Configs() throws an exception when the argument passed is not a string.
         self.assertRaises(Exception, dq_runner.get_Configs, 12)
         self.assertRaises(Exception, dq_runner.get_Configs, True)
-        #Ensruing get_Configs throws an exception when passed an invalid request.
+        # Ensruing get_Configs() throws an exception when passed an invalid request.
         self.assertRaises(Exception, dq_runner.get_Configs, 'blah')
-        #TODO add expected output test
-    
+        # Ensuring get_Configs() throws an exception when a requested configuration is missing config data
+        self.assertRaises(Exception, dq_runner.get_Configs, 'accuracy', True)
+        # Ensuring get_Configs() returns a configuration field as a dictionary.
+        self.assertIsInstance(dq_runner.get_Configs('curve', True), dict)
+
     def testtimeStr(self):
         """Testing timeStr() funciton in dq_runner.py that takes in a string time value and returns it as a datetime."""
         # Ensuring timeStr() throws an Exception when passed an argument that is not a string.
@@ -290,26 +330,60 @@ class Testdq_dimensions_runner(unittest.TestCase):
         """Testing createSDomains() funciton in dq_runner.py that takes in a pandas dataframe loaded with input .csv data and fills a premade sampleDomain dictionary for each row in the dataframe by using the sampleDomains() function."""
         # Ensuring createSDomains() throws an Exception when passed an argument that is not a pandas dataframe()
         self.assertRaises(Exception, dq_runner.createSDomains, self.test)
+        # Ensruing createSDomains() returns a dicitonary.
+        self.assertIsInstance(dq_runner.createSDomains(self.testinput, True), dict)
 
     def testfill_sampleDomain(self):
-        """"""
+        """Testing fill_sampleDomain() function in dq_runner.py that takes in 1(first row scenario) or 2 pandas series of row data (current and previous) and fills in a sampleDomain dictionary template from dq_dimensions for the current row passed in."""
+        # Ensuring sampleDomain() throws an Exception when passed arguments that are not pandas series.
+        self.assertRaises(Exception, dq_runner.fill_sampleDomain, self.testinput, self.surface)
+        self.assertRaises(Exception, dq_runner.fill_sampleDomain, self.testinput)
+        # Ensuring sampleDomain() returns a sDomain dictionary
+        self.assertEqual(dq_runner.fill_sampleDomain(self.testinput.loc[5]).keys(), dq_dimensions.sampleDomain.keys())
     
     def testinsertDims(self):
-        """"""
-
-    def testhourlyScores(self):
-        """"""
-
-    def testdailyScores(self):
-        """"""
+        """Testing insertDims() function in dq_runner.py that inserts/formats the calculated dimension columns into the input data."""
+        val = [True for i in range(98)]
+        dim = {'Curve': 'BPOS', 'Validity_': val}
+        check = self.testinput
+        # Ensuring insertDims() throws an Exception when passed unexpected argument types.
+        self.assertRaises(Exception, dq_runner.insertDims, self.testinput, 'not an int', dim)
+        self.assertRaises(Exception, dq_runner.insertDims, self.surface, 2, dim)
+        self.assertRaises(Exception, dq_runner.insertDims, self.testinput, 2, 'not a dict')
+        # Ensuring insertDims() inserted/formatted the dimension column (passed in as a dictionary) correctly.
+        dq_runner.insertDims(check, 2, dim)
+        self.assertIn('Validity_BPOS', check.columns)
+    
+    def testaggScores(self):
+        """Testing aggScores() funciton in dq_runner.py that calculates and records the Dimension scores for each Type of aggregation (specified by user when called)."""
+        # Ensuring aggScores() throws an Exception when passed unexpected argument types.
+        self.assertRaises(Exception, dq_runner.aggScores, self.dimdata, 2.5) 
+        self.assertRaises(Exception, dq_runner.aggScores, self.surface, 'hourly')
+        # Ensruing aggScores() throws an Exception when the requested aggType is not recognized.
+        self.assertRaises(Exception, dq_runner.aggScores, self.dimdata, 'notagg')
+        # Ensuring aggScores() adds a column of scores for each hour of data. (24 Columns Expected.)
+        hourly = dq_runner.aggScores(self.dimdata, 'hourly')
+        self.assertEqual(len(hourly.columns), 24)
+        # Ensuring aggScores() adds a column of scores for each day of data.
+        daily = dq_runner.aggScores(self.dimdata, 'daily')
+        self.assertEqual(len(daily.columns), 1)
 
     def testcalcScores(self):
+        """Testing calcScores() function in dq_runner.py that calculates and returns a pandas series containing the dimension scores for each curve in the dataframe passed in as an argument."""
+        # Ensuring calcScores() throws an Exception when passed an argument that is not a pandas dataframe.
+        self.assertRaises(Exception, dq_runner.calcScores, self.surface)
+        self.assertRaises(Exception, dq_runner.calcScores, self.test)
+        # Ensuring calcScores() returns a pandas series
+        self.assertIsInstance(dq_runner.calcScores(self.dimdata), pd.Series)
+
+    def testaggOverall(self):
         """"""
 
-    def aggOverall(self):
+    def testcreateOverall(self):
         """"""
-
-    def createOverall(self):
+    def testoverallFormat(self):
+        """"""
+    def testcalcOverallDQ(self):
         """"""
 
 if __name__ == "__main__":

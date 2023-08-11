@@ -197,8 +197,11 @@ class Testdq_dimensions(unittest.TestCase):
         self.assertRaises(Exception, dq_dimensions.checkStationary, self.baddict)
         # Ensuring checkStationary() returns True when passed an sDomain that satisfies the stationary rule.
         self.assertTrue(dq_dimensions.checkStationary(self.stationary))
-        # Ensuring checkStationary() returns False if any curve value breaks its threshold rule.
         # Ensuring checkStationary() returns False if any of the required values are included in the dictionary but empty.
+        self.assertFalse(dq_dimensions.checkStationary(self.empty))
+        # Ensuring checkStationary() returns False if any curve value breaks its threshold rule.
+        self.empty['BitDepth']['curr'] = 400
+        self.assertFalse(dq_dimensions.checkStationary(self.empty))
 
     def testcheckSurface(self):
         """Testing checkSurface Function in dq_dimensions that takes in a sDomain dict (can be copied from dqdimensions) and performs a surface check by checking the value and threshold of the bitdepth curve for the row."""
@@ -213,7 +216,9 @@ class Testdq_dimensions(unittest.TestCase):
         self.assertTrue(dq_dimensions.checkSurface(self.surface))
         # Ensuring checkSurface() returns False if BitDepth value or threshold fields are empty.
         self.assertFalse(dq_dimensions.checkSurface(self.empty))
-        # Ensruing checkSurface() returns True if the sDomain does not pass the surface rule.
+        # Ensruing checkSurface() returns False if the sDomain does not pass the surface rule.
+        self.empty['BitDepth']['curr'] = 400
+        self.assertFalse(dq_dimensions.checkSurface(self.empty))
 
     # Testing Score Calculation Functions
 

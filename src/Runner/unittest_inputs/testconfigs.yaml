@@ -1,0 +1,81 @@
+#Enter Configurations for curve values you would like to analyze
+#TODO Add units config and explain in read me that the runner assumes that the units are configed and not written into title.
+Curve_configs:
+  BPOS:
+    Dtype: float
+    upLim: 40.0
+    lowLim: -0.0001
+    rule: Delta_BPOS
+  DBTM:
+    Dtype: float
+    upLim: 6000.0
+    lowLim: -0.0001
+    rule: 
+      - OnSurface
+      - Bit_Move
+  DMEA:
+    Dtype: float
+    upLim: 6000.0
+    lowLim: -0.0001
+    rule:
+  HKLA:
+    Dtype: float
+    upLim: 500.0
+    lowLim: -0.0001
+    rule: Hookload
+  MFIA:
+    Dtype: float
+    upLim: 500.0
+    lowLim: -0.0001
+    rule:
+  RPMA:
+    Dtype: float
+    upLim: 300.0
+    lowLim: -0.0001
+    rule: RPM
+  SPPA:
+    Dtype: float
+    upLim: 6000.0
+    lowLim: -0.0001
+    rule: SPP
+  TQA:
+    Dtype: float
+    upLim: 10000.0
+    lowLim: -0.0001
+    rule:
+  TV01:
+    Dtype: float
+    upLim: 200.0
+    lowLim: -0.0001
+    rule:
+  TVT:
+    Dtype: float
+    upLim: 500.0
+    lowLim: -0.0001
+    rule:
+  WOBA:
+    Dtype: float
+    upLim: 500.0
+    lowLim: -0.0001
+    rule:
+Rule_thresholds:
+  OnSurface: 328.0
+  RPM: 5.0
+  SPP: 500.0
+  Hookload: 100.0
+  Delta_BPOS: 0.1
+  Bit_Move: 0.2
+General_configs:
+  DataFile: 'Testempty.csv'
+  CheckFile: 'Testtype.xlsx'
+  CalcConsistency: True
+  CheckRigStatuses: True
+  freqTol: 5.0
+Accuracy_configs:
+Dimension_weights:
+  Validity: 35
+  Frequency: 25
+  Consistency: 5
+  Completeness: 5
+  Uniqueness: 5
+  Accuracy: 25

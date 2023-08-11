@@ -188,7 +188,7 @@ def checkStationary(sDomain: dict):
             raise Exception('Please ensure you are passing a copy/instance of the sampleDomain dictionary found in dq_dimensions.py.')
         for key2, val2 in val1.items():
             # Checking if expected numerical data is empty.
-            if bool(val2) is False and val2 != 0:
+            if type(val2) is type:
                 required = False
     
     if required:
@@ -216,7 +216,7 @@ def checkSurface(sDomain: dict):
         if val.keys() != sampleDomain[key].keys():
             raise Exception('Please ensure you are passing a copy/instance of the sampleDomain dictionary found in dq_dimensions.py.')
     # Checking if expected numerical data is empty.    
-    if (bool(sDomain['BitDepth']['curr']) is False and sDomain['BitDepth']['curr'] != 0) or (bool(sDomain['BitDepth']['surfaceThresh']) is False and sDomain['BitDepth']['surfaceThresh'] != 0):
+    if type(sDomain['BitDepth']['curr']) is type or type(sDomain['BitDepth']['surfaceThresh']) is type:
         return False
     
     # Surface rule logic 
