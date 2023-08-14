@@ -12,14 +12,15 @@ import dq_dimensions
 import dq_runner
 
 class Testdq_dimensions_runner(unittest.TestCase):
-    def setUp(self):
+    def setUp(self): 
         self.current = datetime.fromisoformat('2020-03-08T19:00:32.9150000Z')
         self.previous = datetime.fromisoformat('2020-03-08T19:00:31.9050000Z')
         self.badprev = datetime.fromisoformat('2020-03-08T19:00:30.8920000Z')
         self.testinput = pd.read_csv(os.path.join(sys.path[0], 'unittest_inputs/testinput.csv'))
         self.dimdata = pd.read_csv(os.path.join(sys.path[0], 'unittest_inputs/testdimdata.csv'), low_memory=False)
         self.dimdata = self.dimdata.replace(np.nan, None, regex=True)
-        #print(self.dimdata.dtypes)
+        self.hrscores = pd.read_csv(os.path.join(sys.path[0], 'unittest_inputs/hrtestscores.csv'), index_col=0)
+        self.overall = pd.read_csv(os.path.join(sys.path[0], 'unittest_inputs/testoverallDQ.csv'), index_col=0)
         self.test = [2.4, 3.4]
         self.baddict = {
             'BitDepth':{
@@ -377,14 +378,58 @@ class Testdq_dimensions_runner(unittest.TestCase):
         self.assertIsInstance(dq_runner.calcScores(self.dimdata), pd.Series)
 
     def testaggOverall(self):
-        """"""
+        """Testing aggOverall() function in dq_runner.py that calculates/formats the aggregation overall scores by ustilizing the createOverall() function for each hour/day of data in the input dataframe."""
+        # Ensuring aggOverall() throws an Exception when passed an argument that is not a pandas dataframe.
+        self.assertRaises(Exception, dq_runner.aggOverall, self.surface)
+        # Ensuring aggOverall() correctly formats its output.
+        headers = ['Validity', 'Frequency', 'Consistency', 'Completeness', 'Uniqueness', 'Accuracy', 'Overall Score']
+        check = dq_runner.aggOverall(self.hrscores)
+        for i in headers:
+            self.assertIn(i, check.columns)
+        self.assertIn('Weightage (%)', check.index)
+        # Ensruing the overall scores for every hour is set, expecting 25 rows(24 hr rows, 1 weightage row).
+        self.assertEqual(len(check.index), 25)
+        # Ensruing aggOverall returns a pandas dataframe
+        self.assertIsInstance(check, pd.DataFrame)
 
     def testcreateOverall(self):
-        """"""
+        """Testing the createOverall() function in dq_runner.py that calculates/formats the overall scores of the pandas series passed."""
+        # Ensuring createOverall() throws an Exception when passed an argument that is not a pandas series.
+        self.assertRaises(Exception, dq_runner.createOverall, self.dimdata)
+        self.assertRaises(Exception, dq_runner.createOverall, self.surface)
+        # Ensuring createOverall() correctly formats its output.
+        headers = ['Validity', 'Frequency', 'Consistency', 'Completeness', 'Uniqueness', 'Accuracy', 'Overall Score']
+        check = dq_runner.createOverall(dq_runner.calcScores(self.dimdata))
+        for i in headers:
+            self.assertIn(i, check.columns)
+        self.assertIn('Score (%)', check.index)
+        self.assertIn('Weightage (%)', check.index)
+        # Ensuring createOverall() returns a pandas dataframe
+        self.assertIsInstance(check, pd.DataFrame)
+
     def testoverallFormat(self):
-        """"""
+        """Testing the overallFormat() void function in dq_runner.py that aids createOverall() in formatting its output."""
+        test = pd.DataFrame()
+        arr = [95.2, 93.5, 94.2]
+        # Ensuring overallFormat() throws an Exception when any of the arguments passed are not of their expected type.
+        self.assertRaises(Exception, dq_runner.overallFormat, test, arr, False)
+        self.assertRaises(Exception, dq_runner.overallFormat, self.surface, arr, 'Validity')
+        self.assertRaises(Exception, dq_runner.overallFormat, test, 'not a list', 'Validity')
+        # Ensuring overallFormat() correctly formats the dataframe passed.
+        dq_runner.overallFormat(test, arr, 'Validity')
+        self.assertIn('Validity', test.columns)
+        self.assertIn('Score (%)', test.index)
+        self.assertIn('Weightage (%)', test.index)
+
     def testcalcOverallDQ(self):
-        """"""
+        """Testing the calcOverallDQ() void function in dq_runner.py that calculates the Overall DQ score for a dataset by using the calcWeight and OverallDQ function in the dq_dimensions lib."""
+        # Ensuring calcOverallDQ() throws an Exception if the arguments passed are not of their expected types.
+        self.assertRaises(Exception, dq_runner.calcOverallDQ, self.surface)
+        self.assertRaises(Exception, dq_runner.calcOverallDQ, self.overall, 'not a bool', 'correct')
+        self.assertRaises(Exception, dq_runner.calcOverallDQ, self.overall, True, False)
+        # Ensuring calcOverallDQ() correctly calculates the overall DQ Score.
+        dq_runner.calcOverallDQ(self.overall, testing=True)
+        self.assertEqual(self.overall.loc['Score (%)']['Overall Score'], 97.76)
 
 if __name__ == "__main__":
     unittest.main()

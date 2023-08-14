@@ -362,7 +362,7 @@ def calcScores(dataframe:pd.DataFrame):
     return scoreDf
 
 def aggOverall(dataframe: pd.DataFrame):
-    """Function that creates aggregation output and calculates the aggregation overall scores for the input dataset using the createOverall Function for each agg(hour/day) of scores.
+    """Function that creates the aggregation outputs and calculates the aggregation overall scores for the input dataset using the createOverall Function for each agg(hour/day) of scores.
     
     Args: 
         dataframe (pd.Dataframe): Pandas dataframe that inclues (hourly/daily) dimension scores for each curve.
@@ -394,7 +394,6 @@ def createOverall(series:pd.Series(), hourly=False):
     Returns:
         DQout (pd.Dataframe): Pandas dataframe that includes the overall dimension scores and their corresponding weights set by user in config.yaml
     """
-    #TODO test
     DQout = pd.DataFrame()
     weights = get_Configs('dimensions')
     hrname = ''
@@ -446,7 +445,7 @@ def overallFormat(outData: pd.DataFrame, dArr: list, dim:str, hourly=False, hour
         hourly (boolean): Hourly aggregation toggle, defaulted to false when not passed as an argument.
         hour (str): Hour timestamp, defaulted to an empty string when not passed as an argument.
     Raises:
-
+        Exception: An Exception is raised if any of the arguments passed are not of their expected type.
     """
     weights = get_Configs('dimensions')
     if hourly:
@@ -455,7 +454,7 @@ def overallFormat(outData: pd.DataFrame, dArr: list, dim:str, hourly=False, hour
         outData.at['Score (%)', dim] = round(dq.OverallDim(dArr), 2)
         outData.at['Weightage (%)', dim] = weights.get(dim)
     
-def calcOverallDQ(dataframe:pd.DataFrame, hourly=False, hour=''):
+def calcOverallDQ(dataframe:pd.DataFrame, hourly=False, hour='', testing=False):
     """Void Function that calculates the Overall DQ score for a dataset using the calcWeight and OverallDQ functions in the dq_dimensions lib.
 
     Args:
@@ -463,11 +462,13 @@ def calcOverallDQ(dataframe:pd.DataFrame, hourly=False, hour=''):
     Raises:
         Exception: An Exception is raised if the argument passed is not a pandas dataframe.
     """
-    #TODO Test
-
     #Creating list for weighted dimensions
     wDims = []
-    configs = get_Configs('dimensions')
+    if testing:
+        configs = get_Configs('dimensions', True)
+    else:
+        configs = get_Configs('dimensions')
+
     for column in dataframe:
         if column in configs.keys():
             if hourly:
