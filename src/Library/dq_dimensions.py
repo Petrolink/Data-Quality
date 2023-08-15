@@ -122,7 +122,7 @@ def Uniqueness(curr:float, prev=0.0, stationary=False, onsurface=False):
             if curr == prev:
                 return False
         elif type(curr) is float and type(prev) is None or type(curr) is float and prev == 0.0:
-            return True
+            return False
         else:
             raise Exception('Please ensure to only pass float values as arguments for Uniqueness() or a float as "curr" and a None as "prev" in a 1st sample/row case.')
     return True
@@ -140,7 +140,7 @@ def Consistency(xCurve:float, yCurve:float):
     if type(xCurve) is None and type(yCurve) is None:
         return None
     elif type(xCurve) is not float and type(yCurve) is not float:
-        raise Exception('Please only pass numerical values to Consistency().')
+        raise Exception('Please only pass numerical values to Consistency(). Passed: ' + str(type(xCurve)) + ' ' + str(type(yCurve)))
     if xCurve != yCurve:
         return False
     return True

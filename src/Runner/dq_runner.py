@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 import yaml
 import copy
 from datetime import datetime, timedelta
@@ -157,14 +158,22 @@ def createDimensions(dataframe:pd.DataFrame):
                     sDomain = sDomains[index]
                     val.append(dq.Validity(curr, cConfig.get('upLim'), cConfig.get('lowLim')))
                     if cCheck:
-                        cons.append(dq.Consistency(curr, consCheck.iloc[index][column]))
+                        cons.append(dq.Consistency(float(curr), float(consCheck.iloc[index][column].item())))
                     if index == 0:
                         #First sample/row scenarios.
                         if accuracy:
                             acc.append(None)
                         freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), None, GenConfigs.get('freqTol')))
                         if GenConfigs['CheckRigStatuses']:
-                            uniq.append(dq.Uniqueness(curr, 0.0, dq.checkStationary(sDomain), dq.checkSurface(sDomain)))
+                            match(cConfig.get('rigStatuses').lower()):
+                                case 'all':
+                                    uniq.append(dq.Uniqueness(float(curr), 0.0, dq.checkStationary(sDomain), dq.checkSurface(sDomain)))
+                                case 'stationary': 
+                                    uniq.append(dq.Uniqueness(float(curr), 0.0, dq.checkStationary(sDomain)))
+                                case 'surface': 
+                                    uniq.append(dq.Uniqueness(float(curr), 0.0, dq.checkSurface(sDomain)))
+                                case default:
+                                    raise Exception('Please ensure to specify which rigStatuses should be checked for ' + column + '. (all, stationary, or surface)')
                             sta.append(dq.checkStationary(sDomain))
                             sur.append(dq.checkSurface(sDomain))
                         else:
@@ -177,11 +186,19 @@ def createDimensions(dataframe:pd.DataFrame):
                                 acc.append(dq.Accuracy(abs(sDomain['BitDepth']['curr'] - sDomain['BitDepth']['prev']),  abs(sDomain['BlockPosition']['curr']- sDomain['BlockPosition']['prev']), sDomain['BlockPosition']['deltaThresh']))
                         freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), GenConfigs.get('freqTol')))
                         if GenConfigs['CheckRigStatuses']:
-                            uniq.append(dq.Uniqueness(curr, lastgoodVal, dq.checkStationary(sDomain), dq.checkSurface(sDomain)))
+                            match(cConfig.get('rigStatuses').lower()):
+                                case 'all':
+                                    uniq.append(dq.Uniqueness(float(curr), float(lastgoodVal), dq.checkStationary(sDomain), dq.checkSurface(sDomain)))
+                                case 'stationary': 
+                                    uniq.append(dq.Uniqueness(float(curr), float(lastgoodVal), dq.checkStationary(sDomain)))
+                                case 'surface': 
+                                    uniq.append(dq.Uniqueness(float(curr), float(lastgoodVal), dq.checkSurface(sDomain)))
+                                case default:
+                                    raise Exception('Please ensure to specify which rigStatuses should be checked for ' + column + '. (all, stationary, or surface)')
                             sta.append(dq.checkStationary(sDomain))
                             sur.append(dq.checkSurface(sDomain))
                         else:
-                            uniq.append(dq.Uniqueness(curr, lastgoodVal))
+                            uniq.append(dq.Uniqueness(float(curr), float(lastgoodVal)))
                     lastgoodVal = curr
                 else:
                     val.append(False)
@@ -371,6 +388,8 @@ def aggOverall(dataframe: pd.DataFrame):
     Returns:
         aggOut (pd.Dataframe): Pandas dataframe
     """
+    if len(dataframe) == 0:
+        return pd.DataFrame()
     aggOut = pd.DataFrame()
     weights = get_Configs('dimensions')
     for col in dataframe:

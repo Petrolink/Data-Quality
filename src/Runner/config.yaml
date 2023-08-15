@@ -5,11 +5,13 @@ Curve_configs:
     Dtype: float
     upLim: 40.0
     lowLim: -0.0001
+    rigStatuses: all
     rule: Delta_BPOS
   DBTM:
     Dtype: float
     upLim: 6000.0
     lowLim: -0.0001
+    rigStatuses: all
     rule: 
       - OnSurface
       - Bit_Move
@@ -17,46 +19,55 @@ Curve_configs:
     Dtype: float
     upLim: 6000.0
     lowLim: -0.0001
+    rigStatuses: all
     rule:
   HKLA:
     Dtype: float
     upLim: 500.0
     lowLim: -0.0001
+    rigStatuses: all
     rule: Hookload
   MFIA:
     Dtype: float
     upLim: 500.0
     lowLim: -0.0001
+    rigStatuses: all
     rule:
   RPMA:
     Dtype: float
     upLim: 300.0
     lowLim: -0.0001
+    rigStatuses: all
     rule: RPM
   SPPA:
     Dtype: float
     upLim: 6000.0
     lowLim: -0.0001
+    rigStatuses: all
     rule: SPP
   TQA:
     Dtype: float
     upLim: 10000.0
     lowLim: -0.0001
+    rigStatuses: all
     rule:
   TV01:
     Dtype: float
     upLim: 200.0
     lowLim: -0.0001
+    rigStatuses: all
     rule:
   TVT:
     Dtype: float
     upLim: 500.0
     lowLim: -0.0001
+    rigStatuses: all
     rule:
   WOBA:
     Dtype: float
     upLim: 500.0
     lowLim: -0.0001
+    rigStatuses: stationary
     rule:
 Rule_thresholds:
   OnSurface: 328.0
@@ -66,8 +77,8 @@ Rule_thresholds:
   Delta_BPOS: 0.1
   Bit_Move: 0.2
 General_configs:
-  DataFile: 'SampleDate_Time2.csv'
-  CheckFile: 'consistency_check.csv'
+  DataFile: 'RI_TIME_Rev1.csv'
+  CheckFile: 'RI_CONS.csv'
   CalcConsistency: True
   CheckRigStatuses: True
   freqTol: 5.0
