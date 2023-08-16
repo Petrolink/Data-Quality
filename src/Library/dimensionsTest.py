@@ -145,12 +145,31 @@ class Testdq_dimensions(unittest.TestCase):
     def test_Uniqueness(self):
         """Testing Uniqueness() function in dq_dimensions.py that takes in current and previous(None in 1st sample case) arguments(float) and determines if
         the arguments are unique values."""
-        # Ensuring Uniqueness() throws an Exception when the arguments passed are not both floats.
+        # Testing FUNCTIONALITY WITH RIG STATUSES
+        # Ensuring Uniqueness() throws an Exception when any of the arguments passed are not of their expected type.
+        self.assertRaises(Exception, dq_dimensions.Uniqueness, 12.5, 12.5, 'NOT A BOOL', 'NOT A BOOL')
+        self.assertRaises(Exception, dq_dimensions.Uniqueness, 12.5, 12.5, 'NOT A BOOL')
+        self.assertRaises(Exception, dq_dimensions.Uniqueness, 12.5, 0.0, 12.5, False)
+        self.assertRaises(Exception, dq_dimensions.Uniqueness, 12.5, 0.0, False, 124)
+        self.assertRaises(Exception, dq_dimensions.Uniqueness, 12.5, None, 'NOT A BOOL')
+        self.assertRaises(Exception, dq_dimensions.Uniqueness, 12.5, None, 12.5)
+        self.assertRaises(Exception, dq_dimensions.Uniqueness, 'Not a num', 12.5, False)
+        # Ensuring Uniqueness() returns true if the stationary or surface rig status checks are true.
+        self.assertTrue(dq_dimensions.Uniqueness(12.5, None, dq_dimensions.checkStationary(self.stationary)))
+        self.assertTrue(dq_dimensions.Uniqueness(12.5, 12.5, False, dq_dimensions.checkSurface(self.surface)))
+        # Ensuring Uniqueness() returns true when vals are unique and rig statuses are false.
+        self.assertTrue(dq_dimensions.Uniqueness(12.5, 13.0, False, False))
+        #Ensuring Uniqueness() returns fasle when vals are equal and rig statuses are false.
+        self.assertFalse(dq_dimensions.Uniqueness(0.0, 0.0, False, False))
+
+
+        # TESTING FUNCTIONALITY WITHOUT RIG STATUSES 
+        # # Ensuring Uniqueness() throws an Exception when the arguments passed are not both floats.
         self.assertRaises(Exception, dq_dimensions.Uniqueness, '12.5', '13.2')
         self.assertRaises(Exception, dq_dimensions.Uniqueness, 12, 13)
         self.assertRaises(Exception, dq_dimensions.Uniqueness, True, False)
         self.assertRaises(Exception, dq_dimensions.Uniqueness, 12.5, 13)
-        self.assertRaises(Exception, dq_dimensions.Uniqueness, 12, None)
+        self.assertRaises(Exception, dq_dimensions.Uniqueness, 12, None)       
         # Ensuring Uniqueness() returns true in a 1st sample/row case, "curr" should be float and "prev" should be None
         self.assertTrue(dq_dimensions.Uniqueness(12.5))
         # Ensuring Uniqueness() returns true when curr != prev

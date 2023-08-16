@@ -103,7 +103,6 @@ def Completeness(cFreqs:list):
 
 def Uniqueness(curr:float, prev=0.0, stationary=False, onsurface=False):
     """Function that determines the uniqueness of a sample/row by comparing the current and previous curve values and ensuring they are not the same.
-    #TODO Update tests to include rig statuses.
     Args:
         stationary (bool - OPTIONAL): Stationary rig status, defaulted to False.
         onsurface (bool - OPTIONAL): On surface rig status, defaulted to False.
@@ -115,16 +114,19 @@ def Uniqueness(curr:float, prev=0.0, stationary=False, onsurface=False):
         Boolean: True/Good if either of the rig statuses are true.
         Boolean: True/Good if curr != prev or if curr is a float value and prev is a None value (1st row of data).
         Boolean: False/Bad if curr == prev."""
-    if stationary or onsurface:
-        return True
-    else:
-        if type(curr) is float and type(prev) is float:
-            if curr == prev:
-                return False
-        elif type(curr) is float and type(prev) is None or type(curr) is float and prev == 0.0:
-            return False
+    if type(stationary) == bool and type(onsurface) == bool:
+        if stationary or onsurface:
+            return True
         else:
-            raise Exception('Please ensure to only pass float values as arguments for Uniqueness() or a float as "curr" and a None as "prev" in a 1st sample/row case.')
+            if type(curr) is float and type(prev) is float:
+                if curr == prev:
+                    return False
+            elif type(curr) is float and type(prev) is None or type(curr) is float and prev == 0.0:
+                return True
+            else:
+                raise Exception('Please ensure to only pass float values as arguments(curr/prev) for Uniqueness() or a float as "curr" and a None as "prev" in a 1st sample/row case.')
+    else:
+        raise Exception('Please ensure to only pass boolean values as rig status arguments for Uniqueness()')
     return True
 
 def Consistency(xCurve:float, yCurve:float):
