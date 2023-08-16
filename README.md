@@ -7,7 +7,7 @@ Aside from the 2 main directories are the output .csv files. These files are the
 
 ## Table of Contents
 1. [What is DataQuality](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/3300c23de1571af50d9f39560718aea5996de56a/README.md/#what-is-dataquality)
-2. [How We Assess Data Quality]()
+2. [How Petrolink Assesses Data Quality]()
 3. [Directory Guide]()
 4. [How to Run]()
 5. [Outputs Explained]()
