@@ -7,11 +7,11 @@ Aside from the 2 main directories are the output .csv files. These files are the
 
 ## Table of Contents
 1. [What is DataQuality](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/3300c23de1571af50d9f39560718aea5996de56a/README.md/#what-is-dataquality)
-2. [How Petrolink Assesses Data Quality]()
-3. [Directory Guide]()
-4. [How to Run]()
-5. [Outputs Explained]()
-4. [Future Steps]()
+2. [How Petrolink Assesses Data Quality](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#how-petrolink-assesses-data-quality)
+3. [Directory Guide](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#directory-guide)
+4. [How to Run](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#how-to-run)
+5. [Outputs Explained](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#outputs-explained)
+4. [Future Steps](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#outputs-explained)
 
 ## What is Data Quality
 
