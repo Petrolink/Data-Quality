@@ -11,7 +11,7 @@ Aside from the 2 main directories are the output .csv files. These files are the
 3. [Directory Guide](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#directory-guide)
 4. [How to Run](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#how-to-run)
 5. [Outputs Explained](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#outputs-explained)
-4. [Future Steps](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#outputs-explained)
+4. [Future Steps](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/fc06201ff517060bc4f9ca80ccf1635a1491f932/README.md/#future-steps)
 
 ## What is Data Quality
 
