@@ -17,3 +17,15 @@ Aside from the 2 main directories are the output .csv files. These files are the
 
 
 ## How Petrolink Assesses Data Quality
+
+
+## Directory Guide
+
+
+## How to Run
+
+
+## Outputs Explained
+
+
+## Future Steps
