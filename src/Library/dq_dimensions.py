@@ -309,9 +309,9 @@ def overall_dq(weighted_scores: list):
     check =  all(isinstance(x, (float, int)) for x in weighted_scores)
     if check:
         for dim in weighted_scores:
-            DQscore += dim
+            dq_score += dim
         if dq_score > 100:
-            raise Exception('Please ensure the dimensions passed have been weighted, the sum of all weighted values should be <= 100. Sum Produced: ' + str(DQscore))
+            raise Exception('Please ensure the dimensions passed have been weighted, the sum of all weighted values should be <= 100. Sum Produced: ' + str(dq_score))
     else:
         raise Exception('Please only pass lists with pure numerical data to OverallDQ().')
     return dq_score
