@@ -156,55 +156,55 @@ def createDimensions(dataframe:pd.DataFrame):
             for curr in dataframe[column]:
                 if type(curr) is float or type(curr) is int:
                     sDomain = sDomains[index]
-                    val.append(dq.Validity(curr, cConfig.get('upLim'), cConfig.get('lowLim')))
+                    val.append(dq.validity(curr, cConfig.get('upLim'), cConfig.get('lowLim')))
                     if cCheck:
-                        cons.append(dq.Consistency(float(curr), float(consCheck.iloc[index][column].item())))
+                        cons.append(dq.consistency(float(curr), float(consCheck.iloc[index][column].item())))
                     if index == 0:
                         #First sample/row scenarios.
                         if accuracy:
                             acc.append(None)
-                        freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), None, GenConfigs.get('freqTol')))
+                        freq.append(dq.frequency(timeStr(dataframe.iloc[index]['Time']), None, GenConfigs.get('freqTol')))
                         if GenConfigs['CheckRigStatuses']:
                             match(cConfig.get('rigStatuses').lower()):
                                 case 'all':
-                                    uniq.append(dq.Uniqueness(float(curr), 0.0, dq.checkStationary(sDomain), dq.checkSurface(sDomain)))
+                                    uniq.append(dq.uniquness(float(curr), 0.0, dq.check_stationary(sDomain), dq.check_surface(sDomain)))
                                 case 'stationary': 
-                                    uniq.append(dq.Uniqueness(float(curr), 0.0, dq.checkStationary(sDomain)))
+                                    uniq.append(dq.uniquness(float(curr), 0.0, dq.check_stationary(sDomain)))
                                 case 'surface': 
-                                    uniq.append(dq.Uniqueness(float(curr), 0.0, dq.checkSurface(sDomain)))
+                                    uniq.append(dq.uniquness(float(curr), 0.0, dq.check_surface(sDomain)))
                                 case default:
                                     raise Exception('Please ensure to specify which rigStatuses should be checked for ' + column + '. (all, stationary, or surface)')
-                            sta.append(dq.checkStationary(sDomain))
-                            sur.append(dq.checkSurface(sDomain))
+                            sta.append(dq.check_stationary(sDomain))
+                            sur.append(dq.check_surface(sDomain))
                         else:
-                            uniq.append(dq.Uniqueness(curr))
+                            uniq.append(dq.uniquness(curr))
                     else:
                         if accuracy:
                             if sDomain['Hookload']['value'] < sDomain['Hookload']['thresh']:
                                 acc.append(True)
                             else:
-                                acc.append(dq.Accuracy(abs(sDomain['BitDepth']['curr'] - sDomain['BitDepth']['prev']),  abs(sDomain['BlockPosition']['curr']- sDomain['BlockPosition']['prev']), sDomain['BlockPosition']['deltaThresh']))
-                        freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), GenConfigs.get('freqTol')))
+                                acc.append(dq.accuracy(abs(sDomain['BitDepth']['curr'] - sDomain['BitDepth']['prev']),  abs(sDomain['BlockPosition']['curr']- sDomain['BlockPosition']['prev']), sDomain['BlockPosition']['deltaThresh']))
+                        freq.append(dq.frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), GenConfigs.get('freqTol')))
                         if GenConfigs['CheckRigStatuses']:
                             match(cConfig.get('rigStatuses').lower()):
                                 case 'all':
-                                    uniq.append(dq.Uniqueness(float(curr), float(lastgoodVal), dq.checkStationary(sDomain), dq.checkSurface(sDomain)))
+                                    uniq.append(dq.uniquness(float(curr), float(lastgoodVal), dq.check_stationary(sDomain), dq.check_surface(sDomain)))
                                 case 'stationary': 
-                                    uniq.append(dq.Uniqueness(float(curr), float(lastgoodVal), dq.checkStationary(sDomain)))
+                                    uniq.append(dq.uniquness(float(curr), float(lastgoodVal), dq.check_stationary(sDomain)))
                                 case 'surface': 
-                                    uniq.append(dq.Uniqueness(float(curr), float(lastgoodVal), dq.checkSurface(sDomain)))
+                                    uniq.append(dq.uniquness(float(curr), float(lastgoodVal), dq.check_surface(sDomain)))
                                 case default:
                                     raise Exception('Please ensure to specify which rigStatuses should be checked for ' + column + '. (all, stationary, or surface)')
-                            sta.append(dq.checkStationary(sDomain))
-                            sur.append(dq.checkSurface(sDomain))
+                            sta.append(dq.check_stationary(sDomain))
+                            sur.append(dq.check_surface(sDomain))
                         else:
-                            uniq.append(dq.Uniqueness(float(curr), float(lastgoodVal)))
+                            uniq.append(dq.uniquness(float(curr), float(lastgoodVal)))
                     lastgoodVal = curr
                 else:
                     val.append(False)
                     cons.append(False)
                     uniq.append(False)
-                    freq.append(dq.Frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), GenConfigs.get('freqTol')))
+                    freq.append(dq.frequency(timeStr(dataframe.iloc[index]['Time']), timeStr(dataframe.iloc[index-1]['Time']), GenConfigs.get('freqTol')))
                     if accuracy: 
                         acc.append(False)
             
@@ -222,7 +222,7 @@ def createDimensions(dataframe:pd.DataFrame):
                 dimensions['Accuracy_']= acc
             insertDims(dataframe, colNum, dimensions)
     for idx, row, in AllFreq.iterrows():
-        comp.append(dq.Completeness(row.tolist()))
+        comp.append(dq.completeness(row.tolist()))
     dataframe['Completeness'] = comp
 
 def createSDomains(dataframe: pd.DataFrame, testing=False):
@@ -261,7 +261,7 @@ def fill_sampleDomain(cSample: pd.Series, pSample=pd.Series):
     if type(cSample) is pd.Series:
         CurveConfigs = get_Configs('curve')
         RuleConfigs = get_Configs('rules')
-        sDomain = copy.deepcopy(dq.sampleDomain)
+        sDomain = copy.deepcopy(dq.SampleDomain)
         for idx, value in cSample.items():
             if idx in CurveConfigs.keys() and CurveConfigs[idx].get('rule') is not None:
                 rule = CurveConfigs[idx].get('rule')
@@ -369,7 +369,7 @@ def calcScores(dataframe:pd.DataFrame):
                 currCurve = column
             colcheck = column.split("_")
             if colcheck[0] in Dimensions:
-                score = dq.dimScore(list(dataframe[column]))
+                score = dq.dim_score(list(dataframe[column]))
                 if colcheck[0] == 'Completeness':
                     scoreDf[colcheck[0]] = score
                 else:
@@ -468,9 +468,9 @@ def overallFormat(outData: pd.DataFrame, dArr: list, dim:str, hourly=False, hour
     """
     weights = get_Configs('dimensions')
     if hourly:
-        outData.at[hour, dim] = round(dq.OverallDim(dArr), 2)
+        outData.at[hour, dim] = round(dq.overall_dim(dArr), 2)
     else:
-        outData.at['Score (%)', dim] = round(dq.OverallDim(dArr), 2)
+        outData.at['Score (%)', dim] = round(dq.overall_dim(dArr), 2)
         outData.at['Weightage (%)', dim] = weights.get(dim)
     
 def calcOverallDQ(dataframe:pd.DataFrame, hourly=False, hour='', testing=False):
@@ -491,13 +491,13 @@ def calcOverallDQ(dataframe:pd.DataFrame, hourly=False, hour='', testing=False):
     for column in dataframe:
         if column in configs.keys():
             if hourly:
-                wDims.append(dq.calcWeight(dataframe.loc[hour][column], configs.get(column)))
+                wDims.append(dq.calc_weight(dataframe.loc[hour][column], configs.get(column)))
             else:
-                wDims.append(dq.calcWeight(dataframe.loc['Score (%)'][column], dataframe.loc['Weightage (%)'][column]))
+                wDims.append(dq.calc_weight(dataframe.loc['Score (%)'][column], dataframe.loc['Weightage (%)'][column]))
     if hourly:
-        arr = [round(dq.OverallDQ(wDims), 2)]
+        arr = [round(dq.overall_dq(wDims), 2)]
     else:
-        arr = [round(dq.OverallDQ(wDims), 2), dataframe.loc['Weightage (%)'].sum()]
+        arr = [round(dq.overall_dq(wDims), 2), dataframe.loc['Weightage (%)'].sum()]
     dataframe.insert(len(dataframe.columns), "Overall Score", arr, False)
 
 def main():
