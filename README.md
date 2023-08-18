@@ -24,8 +24,8 @@ There are two python.py programs/scripts that make up the source code for the py
 Input directory: Where users should put their .csv data that they wish to perform a Data Qulity analysis on.
 
 Src directory: Location of the Data Quality Algorithm's source code.
-  - Runner directory: Location of the executable runner's source code, configurations, unittesting suite, and [documentation](Src/Runner/README.md).
-  - Library directory: Location of the importable dimension library's source code, unittesting suite, and [documentation](Src/Library/README.md).
+  - Runner directory: Location of the executable runner's source code, configurations, unittesting suite, and [documentation](src/Runner/README.md).
+  - Library directory: Location of the importable dimension library's source code, unittesting suite, and [documentation](src/Library/README.md).
 
 
 ## Installation and Setup
