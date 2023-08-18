@@ -1,7 +1,7 @@
 # Petrolink DataQuality Algorithm (Open-Sourced Python Implementation)
 This "DataQuality_Algorithm" repository is the home of Petrolink's "open sourced" python DataQuality algorithm.
 
-In this repository there are two main directories, these are "Input" and "Src". The "Input" directory is self explanitory as that is where users are to put static ".csv" data they would like to run a DataQuality analysis on. The "Src" directory is where users will find the source code that drives the Data Quality algorithm. 
+In this repository there are three main directories, these are "Input", "src", and "Output. The "Input" directory is self explanatory as that is where users are to put static ".csv" data they would like to run a DataQuality analysis on. The "src" directory is where users will find the source code that drives the Data Quality algorithm. The "Output" directory just as the "Input" is self explanatory as that is where users will can find the data quality output produced by the Data Quality Algorithm after execution.
 
 There are two python.py programs/scripts that make up the source code for the python implementaion of the Data Quality Algorithm. These are the runner (dq_runner.py) and the library (dq_dimensions.py). The runner is an executable script where the user input is loaded into a dataframe and manipulated using functions from the imported library to produce Data Quality output. The library is where the dimension calculation functions for the algorithm are located. 
 
@@ -43,6 +43,8 @@ Input directory: Where users should put their .csv data that they wish to perfor
 Src directory: Location of the Data Quality Algorithm's source code.
   - Runner directory: Location of the executable runner's source code, configurations, unittesting suite, and [documentation](src/Runner/README.md).
   - Library directory: Location of the importable dimension library's source code, unittesting suite, and [documentation](src/Library/README.md).
+
+Output directory: Location of the Data Quality Algorithm's output.
 
 
 ## Installation and Setup

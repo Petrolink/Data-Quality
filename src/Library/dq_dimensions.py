@@ -46,7 +46,7 @@ SampleDomain = {
 # Curve Level Dimension Functions
 
 def validity(value:float, upper:float, lower:float):
-    """Function that determines the valididty of the current sample/row by checking if the curve value passed is within an upper and lower limit
+    """Function that determines the validity of the current sample/row by checking if the curve value passed is within an upper and lower limit
 
     Args: 
         value (float): Curve value of the current sample/row
