@@ -1,4 +1,3 @@
-import math
 from datetime import datetime, timedelta
 #TODO add this library to pip, ask Ian for any copyright info that needs to be included at top of this file.
 

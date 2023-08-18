@@ -532,13 +532,13 @@ def main():
     print()
 
     print('Outputting Data...')
-    data.to_csv("curve_dimData.csv")
-    datascores.to_csv("scores.csv")
-    overall.to_csv("overall.csv")
-    hrscores.to_csv('hrscores.csv')
-    hroverall.to_csv('hroverall.csv')
-    dailyscores.to_csv('dailyscores.csv')
-    dailyoverall.to_csv('dailyoverall.csv')
+    data.to_csv("Output\curve_dimData.csv")
+    datascores.to_csv("Output\scores.csv")
+    overall.to_csv("Output\overall.csv")
+    hrscores.to_csv('Output\hrscores.csv')
+    hroverall.to_csv('Output\hroverall.csv')
+    dailyscores.to_csv('Output\dailyscores.csv')
+    dailyoverall.to_csv('Output\dailyoverall.csv')
     print('Done!') 
 
 if __name__ == "__main__":
