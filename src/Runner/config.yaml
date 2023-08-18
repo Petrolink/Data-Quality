@@ -77,8 +77,8 @@ Rule_thresholds:
   Delta_BPOS: 0.1
   Bit_Move: 0.2
 General_configs:
-  DataFile: 'RI_TIME_Rev1.csv'
-  CheckFile: 'RI_CONS.csv'
+  DataFile: 'SampleDate_Time2.csv'
+  CheckFile: 'consistency_check.csv'
   CalcConsistency: True
   CheckRigStatuses: True
   freqTol: 5.0

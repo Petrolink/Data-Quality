@@ -6,13 +6,13 @@ In this repository there are two main directories, these are "Input" and "Src". 
 There are two python.py programs/scripts that make up the source code for the python implementaion of the Data Quality Algorithm. These are the runner (dq_runner.py) and the library (dq_dimensions.py). The runner is an executable script where the user input is loaded into a dataframe and manipulated using functions from the imported library to produce Data Quality output. The library is where the dimension calculation functions for the algorithm are located. 
 
 ## Table of Contents
-1. [What is DataQuality](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/3300c23de1571af50d9f39560718aea5996de56a/README.md/#what-is-dataquality)
-2. [How Petrolink Assesses Data Quality](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#how-petrolink-assesses-data-quality)
-3. [Directory Guide](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#directory-guide)
-4. [Installation and Setup](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/3f16e27b4d57b59a1a8f0f503830575250f8a809/README.md/#installation-and-setup)
-5. [How To Run]()
-6. [Outputs Explained](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/a8a6c801cdfc381ade72d6a1d21569f92022837f/README.md/#outputs-explained)
-7. [Future Steps](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/fc06201ff517060bc4f9ca80ccf1635a1491f932/README.md/#future-steps)
+1. [What is DataQuality](#what-is-data-quality)
+2. [How Petrolink Assesses Data Quality](#how-petrolink-assesses-data-quality)
+3. [Directory Guide](#directory-guide)
+4. [Installation and Setup](#installation-and-setup)
+5. [How To Run](#how-to-run)
+6. [Outputs Explained](#outputs-explained)
+7. [Future Steps](#future-steps)
 
 ## What is Data Quality
 
@@ -24,12 +24,12 @@ There are two python.py programs/scripts that make up the source code for the py
 Input directory: Where users should put their .csv data that they wish to perform a Data Qulity analysis on.
 
 Src directory: Location of the Data Quality Algorithm's source code.
-  - Runner directory: Location of the executable runner's source code, configurations, unittesting suite, and [documentation]().
-  - Library directory: Location of the importable dimension library's source code, unittesting suite, and [documentation]().
+  - Runner directory: Location of the executable runner's source code, configurations, unittesting suite, and [documentation](Src/Runner/README.md).
+  - Library directory: Location of the importable dimension library's source code, unittesting suite, and [documentation](Src/Library/README.md).
 
 
 ## Installation and Setup
-1. Download the [DataQuality Algorithm Repo](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/e257c46a9c14e898d9a0a6507558b036ef879a2b/)
+1. Download the [DataQuality Algorithm Repo]()
 2. Install latest Python3
     - make sure to select "add Python to PATH"
 3. Open command prompt
@@ -45,10 +45,40 @@ Src directory: Location of the Data Quality Algorithm's source code.
 3. Save desired Outputs outside the downloaded repository as the runner will overwrite all output each time it executes.
 
 ## Outputs Explained
-The python Data Quality Algorithm produces three types of output. 
-1. curve_dimData
+The python Data Quality Algorithm produces three types of output: 
+### 1. curve_dimData - for entire dataset
+
+![curve_dimData Example](doc_images/image-1.png)
+
+**curve_dimData Output** - Includes curvewise dimension data for each curve for each sample in the input file, as well as the curvewise rigstatus values when CheckRigStatus config is enabled. 
+
+### 2. scores - for each aggregation(hourly/daily/overall)
+
+![Hourly Scores Output](doc_images/image-3.png)     
+**Hourly Scores Output** - Includes the scores for each curves set of dimensions for every hour within the data set.
+
+![Daily Scores Output](doc_images/image-6.png)  
+**Daily Scores Output** - Includes the scores for each curves set of dimensions for every day of data within the data set.
+
+![Overall Scores Output](doc_images/image-2.png) 
+
+**Overall Scores Output** - Includes the scores for each curves set of dimensions for the entire dataset.
+
+### 3. overall output - for each aggregation(hourly/daily/overall)
+
+![Hourly Overall Output](doc_images/image-5.png)
+
+**Hourly Overall Output** - Includes the "overall" dimension scores as well as the DQ score for each hour of data in the dataset.
+
+![Daily Overall Output](doc_images/image-7.png)
+
+**Daily Overall Output** - Includes the "overall" dimension scores as well as the DQ score for each day of data in the dataset.
+
+![Overall Output](doc_images/image-4.png)
+
+**Overall Output** - Includes the "overall" dimension scores as well as the DQ score for the entire dataset.
 
 ## Future Steps
 1. Accept real-time dynamic data as well as static data.
-2. Improve runner efficiency (run-time)
-3. 
+2. Improve runner efficiency (run-time).
+3. Add weekly, monthly, and yearly aggregations.

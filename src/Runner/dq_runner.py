@@ -170,11 +170,11 @@ def createDimensions(dataframe:pd.DataFrame):
                         if GenConfigs['CheckRigStatuses']:
                             match(cConfig.get('rigStatuses').lower()):
                                 case 'all':
-                                    uniq.append(dq.uniquness(float(curr), 0.0, dq.check_stationary(sDomain), dq.check_surface(sDomain)))
+                                    uniq.append(dq.uniqueness(float(curr), 0.0, dq.check_stationary(sDomain), dq.check_surface(sDomain)))
                                 case 'stationary': 
-                                    uniq.append(dq.uniquness(float(curr), 0.0, dq.check_stationary(sDomain)))
+                                    uniq.append(dq.uniqueness(float(curr), 0.0, dq.check_stationary(sDomain)))
                                 case 'surface': 
-                                    uniq.append(dq.uniquness(float(curr), 0.0, dq.check_surface(sDomain)))
+                                    uniq.append(dq.uniqueness(float(curr), 0.0, dq.check_surface(sDomain)))
                                 case default:
                                     raise Exception('Please ensure to specify which rigStatuses should be checked for ' + column + '. (all, stationary, or surface)')
                             sta.append(dq.check_stationary(sDomain))
@@ -191,17 +191,17 @@ def createDimensions(dataframe:pd.DataFrame):
                         if GenConfigs['CheckRigStatuses']:
                             match(cConfig.get('rigStatuses').lower()):
                                 case 'all':
-                                    uniq.append(dq.uniquness(float(curr), float(lastgoodVal), dq.check_stationary(sDomain), dq.check_surface(sDomain)))
+                                    uniq.append(dq.uniqueness(float(curr), float(lastgoodVal), dq.check_stationary(sDomain), dq.check_surface(sDomain)))
                                 case 'stationary': 
-                                    uniq.append(dq.uniquness(float(curr), float(lastgoodVal), dq.check_stationary(sDomain)))
+                                    uniq.append(dq.uniqueness(float(curr), float(lastgoodVal), dq.check_stationary(sDomain)))
                                 case 'surface': 
-                                    uniq.append(dq.uniquness(float(curr), float(lastgoodVal), dq.check_surface(sDomain)))
+                                    uniq.append(dq.uniqueness(float(curr), float(lastgoodVal), dq.check_surface(sDomain)))
                                 case default:
                                     raise Exception('Please ensure to specify which rigStatuses should be checked for ' + column + '. (all, stationary, or surface)')
                             sta.append(dq.check_stationary(sDomain))
                             sur.append(dq.check_surface(sDomain))
                         else:
-                            uniq.append(dq.uniquness(float(curr), float(lastgoodVal)))
+                            uniq.append(dq.uniqueness(float(curr), float(lastgoodVal)))
                     lastgoodVal = curr
                 else:
                     val.append(False)

@@ -1,6 +1,6 @@
 import math
 from datetime import datetime, timedelta
-#TODO add this library to pip.
+#TODO add this library to pip, ask Ian for any copyright info that needs to be included at top of this file.
 
 # SampleDomain Curve/Value Name Constants
 CURVE_BIT_DEPTH = 'BitDepth'
@@ -278,7 +278,7 @@ def overall_dim(dimension_scores: list):
     overall = 0
     for score in dimension_scores: 
         if type(score) is float or type(score) is int:
-            Overall += score
+            overall += score
         else:
             raise ValueError('dimension_scores must be a list with strictly numerical data.')
     return overall/len(dimension_scores)
