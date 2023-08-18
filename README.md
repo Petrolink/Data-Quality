@@ -7,7 +7,7 @@ There are two python.py programs/scripts that make up the source code for the py
 
 ## Table of Contents
 1. [What is DataQuality](#what-is-data-quality)
-2. [How Petrolink Assesses Data Quality](#how-petrolink-assesses-data-quality)
+2. [Dimensions of Data Quality](#dimensions-of-data-quality)
 3. [Directory Guide](#directory-guide)
 4. [Installation and Setup](#installation-and-setup)
 5. [How To Run](#how-to-run)
@@ -15,10 +15,27 @@ There are two python.py programs/scripts that make up the source code for the py
 7. [Future Steps](#future-steps)
 
 ## What is Data Quality
+Data can be defined as factual information in digital form produced by a sensing device which is used as a basis for reasoning, discussion, or calculation.  As this data becomes or is becoming the integral part of day to day operation, it is very important to determine and report the quality of such data to customers which rely on the data to make engineering and business decisions. 
 
+In order to determine the importance of data quality analysis and how it affects decision making, we must bear in mind that garbage in is garbage out.  So, the question is "Can we differentiate Garbage data from Zero defect data?" Once we can identify and tag data with the determined quality indicators, the user can make a judgement of the data for the specific application in hand. 
 
-## How Petrolink Assesses Data Quality
+## Dimensions of Data Quality
+Data Quality(DQ) dimension is a recognized term used by data management professionals to describe a feature of data that can be measured or assessed against defined standards in order to determine the quality of data. In other words, something (data item, record, data set or database) that can either be measured or assessed based on various standards in order to understand the quality of data. 
 
+We have collected the various aspects with which the quality of the surface and subsurface data can be quantified as: 
+
+1. Frequency 
+2. Completeness 
+2. Uniqueness 
+4. Consistency 
+5. Validity 
+6. Accuracy 
+
+Multi-dimensional quality analysis concept includes screening every data point through various lenses and coming up with an Overall Score for Data Quality. 
+
+The main intention is to use these dimensions to measure the impact of the poor data quality in terms of cost, regulatory compliance, and to increase the quality of the service provided. 
+
+The client should agree to the adopted quality rules with which the data will be assessed against. In some cases, these rules can be decided by the client as these rules might interfere with their operational procedures. 
 
 ## Directory Guide
 Input directory: Where users should put their .csv data that they wish to perform a Data Qulity analysis on.
