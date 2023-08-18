@@ -1,9 +1,9 @@
 # Petrolink DataQuality Algorithm (Open-Sourced Python Implementation)
 This "DataQuality_Algorithm" repository is the home of Petrolink's "open sourced" python DataQuality algorithm.
 
-In this repository there are 2 main directories, these are "Input" and "Src". The "Input" directory is self explanitory as that is where users are to put static ".csv" data they would like to run a DataQuality analysis on. The "Src" directory is where users will find the source code that drives the Data Quality algorithm. 
+In this repository there are two main directories, these are "Input" and "Src". The "Input" directory is self explanitory as that is where users are to put static ".csv" data they would like to run a DataQuality analysis on. The "Src" directory is where users will find the source code that drives the Data Quality algorithm. 
 
-There are two python.py programs/scripts that make up the source code for the python implementaion of the Data Quality Algorithm. These are the runner (dq_runner.py) and the library (dq_dimensions.py). The runner is an executable script where user input is loaded into a dataframe and manipulated using functions from the imported library to produce Data Quality output. The library is where the dimension calculation functions for the algorithm are located. 
+There are two python.py programs/scripts that make up the source code for the python implementaion of the Data Quality Algorithm. These are the runner (dq_runner.py) and the library (dq_dimensions.py). The runner is an executable script where the user input is loaded into a dataframe and manipulated using functions from the imported library to produce Data Quality output. The library is where the dimension calculation functions for the algorithm are located. 
 
 ## Table of Contents
 1. [What is DataQuality](***REMOVED***scm/repo/git/DataQuality_Algorithim/code/sources/3300c23de1571af50d9f39560718aea5996de56a/README.md/#what-is-dataquality)
@@ -37,14 +37,16 @@ Src directory: Location of the Data Quality Algorithm's source code.
     - Enter "pip install pyyaml"
 4. Place static .csv data to be analyzed into the "Input" directory 
     - Please ensure to provide a consistency check file if calculating consitency
-5. Update the DataFile and CheckFile(for consistency check) "General_configs" fields in config.yaml with the respective input file names
+5. Update the DataFile and CheckFile(for consistency check) "General_configs" fields in the runner's config.yaml file with the respective input file names
 
 ## How To Run
 1. Update the runner configurations in config.yaml using the input data file accordingly, click [here]() for instructions.
 2. Run the (.py)file/executable.
+3. Save desired Outputs outside the downloaded repository as the runner will overwrite all output each time it executes.
 
 ## Outputs Explained
-
+The python Data Quality Algorithm produces three types of output. 
+1. curve_dimData
 
 ## Future Steps
 1. Accept real-time dynamic data as well as static data.

@@ -54,13 +54,13 @@ def validity(value:float, upper:float, lower:float):
         upper (float): Upper Limit for curve value
         lower (float): Lower Limit for curve value
     Raises:
-        Exception: An Exception is raised when all of the arguments passed are not float values.
-        Exception: An Exception is raised when the upLim <= lowLim.
+        TypeError: Raised when all of the arguments passed are not float values.
+        ValueError: Raised when upper <= lower.
     Returns:
         Boolean: True/Good if curve value is within set limits.
     """
     if upper <= lower:
-        raise Exception('Please ensure the upper limit argument is passed before the lower limit argument. ie. (cValue, upLim, lowLim)')
+        raise ValueError('upper must be greater than lower')
     if value >= upper or value <= lower:
         return False
     return True
@@ -73,18 +73,15 @@ def frequency(current_time:datetime, previous_time, tolerance:float):
         previous_time (datetime or None): Current time of row/sample passed, if None assuming that it is the first row/sample (ie. "dq.Frequency(datetime val, None, 1.1)). 
         tolerance (float): Expected frequency tolerance in seconds.
     Raises: 
-        Exception: An exception is raised if one or both of the time arguments passed are not of type datetime.
-        Exception: An exception is raised if the cT is an earlier time than pT.
-        Exception: An excception is raised if the tol argument is not a float value.
+        TypeError: Raised if any of the arguments passed are not of their expected type.
+        ValueError: Raised if the cT is an earlier time than pT.
     Returns: 
-        Boolean: True/Good if timedelta between cT and pT is within our expected frequency.
-        Boolean: False/Bad if timedelta between cT and pT is out of our expected frequency or if it is the first row/sample.
+        Boolean: True/Good if timedelta between current_time and previous_time is within the expected frequency tolerance.
+        Boolean: False/Bad if timedelta between current_time and previous_time is out of our expected frequency tolerance or if it is the first row/sample.
     """
     if type(current_time) is datetime and type(previous_time) is datetime:
-        if type(tolerance) is not float:
-            raise Exception('Please ensure the argument passed for "tol" is a float value, Frequency() will not function otherwise.')
         if previous_time > current_time:
-            raise Exception('Please ensure that you enter your arguments in the order of (currentTime, previousTime), Frequency() will not function correctly otherwise.')
+            raise ValueError('previous_time must be an earlier datetime value than current_time')
         expectedF = timedelta(seconds=tolerance)
         delta = current_time - previous_time
         if delta > expectedF:
@@ -93,17 +90,17 @@ def frequency(current_time:datetime, previous_time, tolerance:float):
         # First sample in log case
         return False
     else:
-        raise Exception('Please ensure that the args passed as "cT" and "pT" are of type datetime and follow the standard ISO format.')
+        raise TypeError('current/previous_time should be datetime objects that follow the standard ISO format')
     return True
 
 def completeness(curve_frequencies:list):
     """Function that detemrines the completeness of a sample/row of a log by ensuring all curve frequency values within the log are good.
     
     Args:
-        curve_frequencies (list): Array of curve frequency values for one row/sample in the current log.
+        curve_frequencies (list): List of curve frequency values for one row/sample in the current log.
     Raises:
-        Exception: An exception is raised if the argument passed is not an array.
-        Exception: An exception is raised if any values in the array are not boolean values.
+        TypeError: Raised if the argument passed is not a list.
+        ValueError: Raised if any values in the array are not boolean values.
     Returns: 
         Boolean: True/Good if all values in the array passed in are "TRUE"
         Boolean: False/Bad if any of the values in the array passed in are "FALSE"
@@ -113,7 +110,7 @@ def completeness(curve_frequencies:list):
             if i is False: 
                 return False
         else:
-            raise Exception('Please only pass arrays with boolean or Null Values.')
+            raise ValueError('Only pass lists with bool data')
     return True
 
 def uniqueness(current:float, previous=0.0, stationary=False, on_surface=False):
@@ -124,11 +121,11 @@ def uniqueness(current:float, previous=0.0, stationary=False, on_surface=False):
         stationary (bool - OPTIONAL): Stationary rig status, defaulted to False.
         on_surface (bool - OPTIONAL): On surface rig status, defaulted to False.
     Raises: 
-        Exception: An exception is raised if the arguments passed are not of their set type (prev is an optional argument).
+        TypeError: Raised if the arguments passed are not of their set type (prev is an optional argument).
     Returns:
         Boolean: True/Good if either of the rig statuses are true.
-        Boolean: True/Good if curr != prev or if curr is a float value and prev is a None value (1st row of data).
-        Boolean: False/Bad if curr == prev."""
+        Boolean: True/Good if current != previous or if current is a float value and previous is a None value (1st row of data).
+        Boolean: False/Bad if current == previous."""
     if type(stationary) == bool and type(on_surface) == bool:
         if stationary or on_surface:
             return True
@@ -139,25 +136,25 @@ def uniqueness(current:float, previous=0.0, stationary=False, on_surface=False):
             elif type(current) is float and type(previous) is None or type(current) is float and previous == 0.0:
                 return True
             else:
-                raise Exception('Please ensure to only pass float values as arguments(curr/prev) for Uniqueness() or a float as "curr" and a None as "prev" in a 1st sample/row case.')
+                raise TypeError('curr/prev must be float values, prev is OPTIONAL(can be None)')
     else:
-        raise Exception('Please ensure to only pass boolean values as rig status arguments for Uniqueness()')
+        raise TypeError('rig status (OPTIONAL)arguments must be bool values')
     return True
 
-def consistency(curve:float, consistency_curve:float):
+def consistency(curve=float, consistency_curve=float):
     """Function that determines the consistency of a sample/row by comparing the curve values from different logs at the same index/row.
     
     Args: 
         curve (float): curve value from data log.
         consistency_curve (float): curve value from a consistency check data log.
     Raises:
-        Exception: An Exception is raised if both arguments are not of type float.
+        TypeError: Raised if both arguments are not of type float.
     Returns:
-        True if xCurve and yCurve are equal."""
-    if type(curve) is None and type(consistency_curve) is None:
-        return None
-    elif type(curve) is not float and type(consistency_curve) is not float:
-        raise Exception('Please only pass numerical values to Consistency(). Passed: ' + str(type(curve)) + ' ' + str(type(consistency_curve)))
+        Boolean: True if curve and consistency_curve are equal.
+        Boolean: False if curve and consistency_curve are not equal.
+    """
+    if type(curve) is not float and type(consistency_curve) is not float:
+        raise TypeError('Only pass numerical values to Consistency(). Passed: ' + str(type(curve)) + ' ' + str(type(consistency_curve)))
     if curve != consistency_curve:
         return False
     return True
@@ -170,7 +167,7 @@ def accuracy(value: float, value_check:float, tolerance=0.0001):
         value_check (float): Value being used to determine the accuracy of value.
         tolerance (Float or None): Accuracy tolerance specified by user, (OPTIONAL) defaulted to 0.0001 when not passed.
     Raises: 
-        Exception: An exception is raised if any of the values passed are not float values.
+        TypeError: Raised if any of the values passed are not float values.
     Returns:
         Boolean: True if the delta of val - valcheck <= tol
         Boolean: False if the delta of val - valcheck > tol
@@ -189,20 +186,22 @@ def check_stationary(s_domain: dict):
     Args:
         s_domain (dict): Dictionary filled with required data from each row of input for rig status checks (PLEASE USE TEMPLATE "sampleDomain" DICT from dq_dimensions.py)
     Raises:
-        Exception: An Exception is raised if the argument passed is not of type "dict"
-        Exception: An Exception is raised if the dictionary passed is not an instance of the "sampleDomain" dictionary in dq_dimensions.py.
+        TypeError: Raised if the argument passed is not of type "dict"
+        KeyError: Raised if the dictionary passed is not an instance of the "sampleDomain" dictionary in dq_dimensions.py.
     Returns:
         Boolean: True if all curve values are within their corresponding thresholds.
         Boolean: False if any of the required values in the s_domain that are needed for a stationary check are empty.
         Boolean: False if any curve value breaks its threshold."""
+    if type(s_domain) is not dict:
+        raise TypeError('s_domain arg must be a dict')
     # Ensuring the dictionary passed as input contains the same curve fields as the sampleDomain dictionary template.
     if s_domain.keys() != SampleDomain.keys():
-        raise Exception('Please ensure you are passing a copy/instance of the sampleDomain dictionary found in dq_dimensions.py.')
+        raise KeyError('s_domain is missing the requried keys, see/copy SampleDomain dict in dq_dimensions.py')
     # Ensuring all required fields are filled with data
     required = True
     for key1, val1 in s_domain.items():
         if val1.keys() != SampleDomain[key1].keys():
-            raise Exception('Please ensure you are passing a copy/instance of the sampleDomain dictionary found in dq_dimensions.py.')
+            raise KeyError('s_domain is missing the requried keys, see/copy SampleDomain dict in dq_dimensions.py')
         for key2, val2 in val1.items():
             # Checking if expected numerical data is empty.
             if type(val2) is type:
@@ -219,19 +218,21 @@ def check_surface(s_domain: dict):
     Args:
         s_domain (dict): Dictionary filled with required data from each row of input for rig status checks (PLEASE USE TEMPLATE "sampleDomain" DICT from dq_dimensions.py)
     Raises:
-        Exception: An exception is raised if the argument passed is not of type "dict".
-        Exception: An Exception is raised if passed a dictionary that does not include the required fields.
+        TypeError: Raised if the argument passed is not of type "dict".
+        KeyError: Raised if passed a dictionary that does not include the required fields.
     Returns:
         Boolean: True if depth <= thresh.
         Boolean: False if depth > thresh.
     """
+    if type(s_domain) is not dict:
+        raise TypeError('s_domain arg must be a dict')
     # Ensuring the dictionary passed as input contains the same curve fields as the sampleDomain dictionary template.
     if s_domain.keys() != SampleDomain.keys():
-        raise Exception('Please ensure you are passing a copy/instance of the sampleDomain dictionary found in dq_dimensions.py.')
+        raise KeyError('s_domain is missing the requried keys, see/copy SampleDomain dict in dq_dimensions.py')
     # Ensuring all required fields are filled with data
     for key, val in s_domain.items():
         if val.keys() != SampleDomain[key].keys():
-            raise Exception('Please ensure you are passing a copy/instance of the sampleDomain dictionary found in dq_dimensions.py.')
+            raise KeyError('s_domain is missing the requried keys, see/copy SampleDomain dict in dq_dimensions.py')
     # Checking if expected numerical data is empty.    
     if type(s_domain[CURVE_BIT_DEPTH][VALUE_CURRENT]) is type or type(s_domain[CURVE_BIT_DEPTH][VALUE_ON_SURFACE_THRESH]) is type:
         return False
@@ -247,18 +248,20 @@ def dim_score(dimension_col:list):
     Args:
         dimension_col (list): Dimension Column values generated using the dq_dimension curve level functions.
     Raises:
-        Exception: An Exception is raised if any value in the dimension column passed is not a boolean or None value.
-        Exception: An Exception is raised if the argument passed is not a list.
+        ValueError: Raised if any value in the dimension column passed is not a boolean or None value.
+        TypeError: Raised if the argument passed is not a list.
     Returns: 
         score (float): Calculated score percentage of the dimension passed.
     """
+    if type(dimension_col) is not list:
+        raise TypeError('dimension_col arg must be a list')
     good = 0
     check =  all(isinstance(x, (bool, type(None))) for x in dimension_col)
     if check is True:
         good = dimension_col.count(True)
         score = (good/len(dimension_col)) * 100
     else:
-        raise Exception('Please only provide a list with containing only boolean data to dimScore().')
+        raise ValueError('dimension_col must be a list with strictly bool(and None) data.')
     return score
 
 def overall_dim(dimension_scores: list):
@@ -266,16 +269,18 @@ def overall_dim(dimension_scores: list):
     Args:
         dimension_scores (list): List containing all curve scores for a certain dimension
     Raises:
-        Exception: An Exception is raised if the argument passed is not a list.
-        Exception: An Exception is raised if the contents of data are not all numerical.
+        TypeError: Raised if the argument passed is not a list.
+        ValueError: Raised if the contents of data are not all numerical.
     Returns:
         """
+    if type(dimension_scores) is not list:
+        raise TypeError('dimension_scores arg must be a list')
     overall = 0
     for score in dimension_scores: 
         if type(score) is float or type(score) is int:
             Overall += score
         else:
-            raise Exception('Please only pass lists with pure numerical data to OverallDim().')
+            raise ValueError('dimension_scores must be a list with strictly numerical data.')
     return overall/len(dimension_scores)
 
 def calc_weight(score: float, weight: float):
@@ -284,12 +289,13 @@ def calc_weight(score: float, weight: float):
         score (float): Dimension score
         weight (float): Dimension weightage
     Raises:
-        Exception: An exception is raised if the arguments passed are not numerical.
+        TypeError: Raised if the arguments passed are not numerical.
+        ValueError: Raised if weight > 100.
     Returns:
-        wScore (float): The weighted dimension score.
+        wscore (float): The weighted dimension score.
     """
     if weight > 100:
-        raise Exception('Dimension Weights can only range from 0-100 as it is a percentage.')
+        raise ValueError('Dimension Weight can only range from 0-100 as it is a percentage.')
     wscore = score * (weight/100)
     return wscore
 
@@ -299,20 +305,22 @@ def overall_dq(weighted_scores: list):
     Args: 
         weighted_scores (list): List of weighted dimension scores
     Raises: 
-        Exception: An Exception is raised if the argument passed is not a list.
-        Exception: An Exception is raised if the contents of data are not all numerical.
-        Exception: An Exception is raised if the sum of the contents of data is greater than 100.
+        TypeError: Raised if the argument passed is not a list.
+        ValueError: Raised if the contents of data are not all numerical.
+        ValueError: Raised if the sum of the contents of data is greater than 100.
     Returns:
         dq_score (float): Overall Data Quality Score.
     """
+    if type(weighted_scores) is not list:
+        raise TypeError('weighted_scores arg must be a list')
     dq_score = 0
     check =  all(isinstance(x, (float, int)) for x in weighted_scores)
     if check:
         for dim in weighted_scores:
             dq_score += dim
         if dq_score > 100:
-            raise Exception('Please ensure the dimensions passed have been weighted, the sum of all weighted values should be <= 100. Sum Produced: ' + str(dq_score))
+            raise ValueError('Ensure the dimensions passed have been weighted, the sum of all weighted values should be <= 100. Sum Produced: ' + str(dq_score))
     else:
-        raise Exception('Please only pass lists with pure numerical data to OverallDQ().')
+        raise ValueError('weighted_scores must be a list with strictly numerical data.')
     return dq_score
     

@@ -158,7 +158,10 @@ def createDimensions(dataframe:pd.DataFrame):
                     sDomain = sDomains[index]
                     val.append(dq.validity(curr, cConfig.get('upLim'), cConfig.get('lowLim')))
                     if cCheck:
-                        cons.append(dq.consistency(float(curr), float(consCheck.iloc[index][column].item())))
+                        if consCheck.iloc[index][column].item() is None:
+                            cons.append(None)
+                        else:
+                            cons.append(dq.consistency(float(curr), float(consCheck.iloc[index][column].item())))
                     if index == 0:
                         #First sample/row scenarios.
                         if accuracy:
