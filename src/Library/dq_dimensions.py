@@ -1,22 +1,8 @@
 from datetime import datetime, timedelta
+import copy
 #TODO add this library to pip, ask Ian for any copyright info that needs to be included at top of this file.
 
-# SampleDomain Curve/Value Name Constants
-CURVE_BIT_DEPTH = 'BitDepth'
-CURVE_BLOCK_POSITION = 'BlockPosition'
-CURVE_RPM = 'RPM'
-CURVE_SPP = 'SPP'
-CURVE_HOOKLOAD = 'Hookload'
-VALUE = 'value'
-VALUE_THRESH = 'thresh'
-# SampleDomain BitDepth and Block Position value Constants
-VALUE_CURRENT = 'curr'
-VALUE_PREVIOUS = 'prev'
-VALUE_ON_SURFACE_THRESH = 'surfaceThresh'
-VALUE_BPOS_DELTA_THRESH = 'deltaThresh'
-VALUE_BITMOVEMENT_THRESH = 'bitmoveThresh'
-
-# Samplewise Domain Dictionary (Use in runner as dictionary template to pass copies/instances to checker functions).
+# Samplewise Domain Dictionary
 SampleDomain = {
     'BitDepth': {
         'curr': float,
@@ -42,6 +28,23 @@ SampleDomain = {
         'thresh': float
     }
 }
+
+# SampleDomain Instance Constant (Call this constant in runner as dictionary template to pass instances to rig status check functions)
+SAMPLE_DOMAIN = copy.deepcopy(SampleDomain)
+# SampleDomain Curve/Value Name Constants
+CURVE_BIT_DEPTH = 'BitDepth'
+CURVE_BLOCK_POSITION = 'BlockPosition'
+CURVE_RPM = 'RPM'
+CURVE_SPP = 'SPP'
+CURVE_HOOKLOAD = 'Hookload'
+VALUE = 'value'
+VALUE_THRESH = 'thresh'
+# SampleDomain BitDepth and Block Position value Constants
+VALUE_CURRENT = 'curr'
+VALUE_PREVIOUS = 'prev'
+VALUE_ON_SURFACE_THRESH = 'surfaceThresh'
+VALUE_BPOS_DELTA_THRESH = 'deltaThresh'
+VALUE_BITMOVEMENT_THRESH = 'bitmoveThresh'
 
 # Curve Level Dimension Functions
 
@@ -213,7 +216,7 @@ def check_stationary(s_domain: dict):
     return False
 
 def check_surface(s_domain: dict):
-    """Function that performs an on surface check by taking a bitdepth value and a on surface threshold.
+    """Function that performs an on surface check by taking a bitdepth value and a on-surface threshold.
     Args:
         s_domain (dict): Dictionary filled with required data from each row of input for rig status checks (PLEASE USE TEMPLATE "sampleDomain" DICT from dq_dimensions.py)
     Raises:
