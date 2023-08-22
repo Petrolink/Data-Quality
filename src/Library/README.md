@@ -31,6 +31,11 @@ The main intention is to use these dimensions to measure the impact of the poo
 The client should agree to the adopted quality rules with which the data will be assessed against. In some cases, these rules can be decided by the client as these rules might interfere with their operational procedures. 
 
 ## Assumptions
+1. completeness() Function is assuming that the (list) argument passed in is a list filled with the frequency values for every curve for a sample/row.
+2. consistency() Function is assuming that the (float) arguments passed in are not from the same log (1 from input log, 1 from a consistency check log).
+3. Rig Status check functions are assuming the (dict) argument passed is a SampleDomain dict or a dict with equivalent key values.
+4. dim_score() Funciton is assuming that the (list) argument passed in is a whole dimension column for a curve (ie. the Frequency values for an arbitrary curve).
+5. overall_dim() Function is assuming that the (list) argument passed in is a list containing all the calculated scores for a certain dimension in a dataset (ie. all the Frequency scores from every curve).
 
 ## How to Install and Import
 1. Open command prompt and enter "pip install dq_dimensions"
@@ -48,6 +53,7 @@ The Data Quality Dimensions Library includes one dictionary object.
     - RPM
     - SPP
     - Hookload
+  - The Bit Depth and Block Position curve fields require their current value, previous value, and specific domain threshold(s) as compared to the rest of the curve fields that only require a value (current) and their corresponding curve domain threshold.
 
 ## Constants
 The Data Quality Dimensions Library includes four types of constants. Three of which are used as accessors to fields or values of the SampleDomain dict object.
@@ -73,26 +79,31 @@ The Data Quality Dimensions Library includes four types of constants. Three of w
  - Curve field key for SPP.
 
 **CURVE_HOOKLOAD**
- - Curve field key for Hookload
+ - Curve field key for Hookload.
 
 ### 3. SampleDomain General Value Constants
 
 **VALUE**
- - Curve value 
+ - Curve value.
 
 **VALUE_THRESH**
+ - Curve Domain Threshold.
 
 ### 4. SampleDomain BitDepth and BlockPosition Value Constants
 **VALUE_CURRENT**
+ - Current curve value. 
 
 **VALUE_PREVIOUS**
+ - Previous curve value.
 
 **VALUE_ON_SURFACE_THRESH**
+ - On Surface Domain Threshold
 
 **VALUE_BPOS_DELTA_THRESH**
+ - Block Position Delta Domain Threshold 
 
 **VALUE_BITMOVEMENT_THRESH**
-
+ - Bit Depth Movement Domain Threshold.
 
 ## Functions
 The Data Quality Dimensions Library includes three types of functions.
@@ -141,7 +152,7 @@ The Data Quality Dimensions Library includes three types of functions.
 
 **overall_dim(dimension_scores)**
  - Function that calculates the overall score of a Dimension for a dataset.
- - 
+ - Returns the calculated overall dimension score of the dimension values passed in as a list.
 
 **calc_weight(score, weight)**
  - Function that calculates the weighted score of a dimension.

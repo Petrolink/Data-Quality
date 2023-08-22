@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
 import copy
-#TODO add this library to pip, ask Ian for any copyright info that needs to be included at top of this file.
 
-# Samplewise Domain Dictionary
+# Samplewise Domain Dictionary Object
 SampleDomain = {
     'BitDepth': {
         'curr': float,
@@ -274,7 +273,7 @@ def overall_dim(dimension_scores: list):
         TypeError: Raised if the argument passed is not a list.
         ValueError: Raised if the contents of data are not all numerical.
     Returns:
-        """
+        overall/len(dimension_scores) (float): The averaged overall dimension score of the dimension values passed in as a list."""
     if type(dimension_scores) is not list:
         raise TypeError('dimension_scores arg must be a list')
     overall = 0
