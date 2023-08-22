@@ -264,7 +264,7 @@ def fill_sampleDomain(cSample: pd.Series, pSample=pd.Series):
     if type(cSample) is pd.Series:
         CurveConfigs = get_Configs('curve')
         RuleConfigs = get_Configs('rules')
-        sDomain = copy.deepcopy(dq.SampleDomain)
+        sDomain = dq.SAMPLE_DOMAIN
         for idx, value in cSample.items():
             if idx in CurveConfigs.keys() and CurveConfigs[idx].get('rule') is not None:
                 rule = CurveConfigs[idx].get('rule')

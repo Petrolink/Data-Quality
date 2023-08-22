@@ -1,7 +1,7 @@
 # PetroLink DataQuality Dimensions Python Library/Module
-This DataQuality Dimension python library/module was created with the intent to open source callable curve-level dimension functions that implement petrolinks data quality dimension logic, allowing for a more direct representation of how Petrolink . This library can be installed and imported by any python developer that wishes to write their own runner/parser/etc. that utilizes our data quality logic.
+This DataQuality Dimension python library/module was created with the intent to open source callable curve-level dimension functions that implement the Petrolink data quality algorithm's dimension logic, allowing for a more direct representation of how Petrolink determines their dimension values. 
 
-The functions in this library were written to calculate/determine curve-level dimensions. Doing so allows for modular use in any script/program/algorithm/etx. that wishes to calculate and use dimension data to produce statistics such as data quality.
+This module can be installed and imported by any python developer that wishes to write their own runner/parser/etc. that utilizes our data quality logic to calculate and use dimension data to produce statistics such as data quality.
 
 ## Table of Contents
 1. [Dimensions of Data Quality](#dimensions-of-data-quality)
@@ -64,7 +64,7 @@ The Data Quality Dimensions Library includes four types of constants. Three of w
  - New instance of a SampleDomain dict.
  - Use this constant to create a SampleDomain for each sample of data.
 
-### 2. SampleDomain Field Constants
+### 2. SampleDomain Curve Field Constants
 
 **CURVE_BIT_DEPTH**
  - Curve field key for Bit Depth.

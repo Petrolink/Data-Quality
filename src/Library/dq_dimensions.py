@@ -1,4 +1,127 @@
+"""Help module dq_dimensions:
+
+NAME
+    dq_dimensions
+
+DESCRIPTION
+    Petrolink's DataQuality Dimension module for Python
+    ===================================================
+
+    dq_dimensions is a module that was created with the intent to open source callable curve-level dimension functions that implement the Petrolink data quality algorithms's dimension 
+    logic, allowing for a more direct representation of how Petrolink determines their dimension values. The dq_dimensions utilizes the datetime, copy, and typing modules. 
+    
+    This Module can be installed and imported by any python developer that wishes to write their own runner/parser/script/etc. that utilizes our data quality logic to calculate and use
+    dimension data to produce statistics such as data quality.
+
+    Copyright (c) Petrolink. All Rights Reserved.
+    Licensed under the <license name here>
+    See license.txt for details.
+
+    See [insert git link] for complete documentation.
+
+OBJECTS:
+    SampleDomain
+        Dictionary object that holds the curve value(s) and threshold information required to perfrom rig status checks for each sample within a data set. 
+
+CONSTANTS:
+    SAMPLE DOMAIN INSTANCE CONSTANT
+        SAMPLE_DOMAIN
+            New instance of a SampleDomain dict.
+            Use this constant to create a SampleDomain for each sample of data.
+
+    SAMPLE DOMAIN CURVE FIELD CONSTANTS
+        CURVE_BIT_DEPTH
+            Curve field key for Bit Depth.
+
+        CURVE_BLOCK_POSITION
+            Curve field key for Block Position.
+
+        CURVE_RPM
+            Curve field key for RPM.
+
+        CURVE_SPP
+            Curve field key for SPP.
+
+        CURVE_HOOKLOAD
+            Curve field key for Hookload.
+
+   SAMPLE DOMAIN GENERAL CURVE VALUE CONSTANTS
+        VALUE
+            Curve value.
+
+        VALUE_THRESH
+            Curve Domain Threshold.
+
+    SAMPLE DOMAIN BIT DEPTH AND BLOCK POSITION CURVE VALUE CONSTANTS
+        VALUE_CURRENT
+            Current curve value. 
+
+        VALUE_PREVIOUS
+            Previous curve value.
+
+        VALUE_ON_SURFACE_THRESH
+            On Surface Domain Threshold
+
+        VALUE_BPOS_DELTA_THRESH
+            Block Position Delta Domain Threshold 
+
+        VALUE_BITMOVEMENT_THRESH
+            Bit Depth Movement Domain Threshold.
+
+FUNCTIONS:
+    CURVE LEVEL DIMENSIONS FUNCTIONS
+        validity(value, upper, lower)  
+            Function that determines the validity of a current sample/row by checking if the curve value passed is within an upper and lower limit. 
+            Returns True if value is within set limits.
+
+        frequency(current_time, previous_time, tolerance)
+            Function that determines the frequency of the current sample/row by checking if the timedelta between the current timestamp and the previous timestamp is within the expected frequency tolerance.
+            Returns True if the timedelta calculated is within the expected frequency.
+
+        completeness(curve_frequencies)
+            Function that detemrines the completeness of a sample/row of a log by ensuring all curve frequency values within the log are good.
+            Returns True if all curve frequency values are good.
+
+        uniqueness(current, previous(OPTIONAL), stationary(OPTIONAL), on_surface(OPTIONAL))
+            Function that determines the uniqueness of a sample/row by comparing the current and previous curve values and ensuring they are not the same.
+            Returns True if any optional rig status (bool) arguments are passed in as True.
+            Returns True if current is not equal to previous.
+
+        consistency(curve, consistency_curve)
+            Function that determines the consistency of a sample/row by comparing the curve values from different logs at the same index/row.
+            Returns True if curve and consistency_curve are equal.
+
+        accuracy(value, value_check, tolerance(OPTIONAL))
+            Function that determines the accuracy of a sample/row by ensuring that the delta of value and value_check is <= tolerance (set by user, or 0.0001 when not specified).
+    
+    RIG STATUS CHECK FUNCTIONS
+        check_stationary(s_domain)
+            Function that performs a stationary check by utilizing a "SampleDomain" dictionary containing the following curves and their thresholds: BitDepth, RPM, SPP, Hookload and BlockPosition.
+            Returns True if all curve values are within their corresponding thresholds.
+
+        check_surface(s_domain)
+            Function that performs an on surface check by taking a bitdepth value and a on-surface threshold from a "SampleDomain" dictionary.
+            Returns True if the bitdepth value <= on-surface thresh
+    
+    SCORE CALCULATION FUNCTIONS
+        dim_score(dimension_col)
+            Function that calculates the score of a curve's dimension.
+            Returns the calculated score percentage (float) of the dimension passed.
+
+        overall_dim(dimension_scores)
+            Function that calculates the overall score of a Dimension for a dataset.
+            Returns the calculated overall dimension score of the dimension values passed in as a list.
+
+        calc_weight(score, weight)
+            Function that calculates the weighted score of a dimension.
+            Returns the calculated weighted score.
+
+        overall_dq(weighted scores)
+            Function that calculates the overall Data Quality score of dataset.
+            Returns the calculated Data Quality Score.
+"""
 from datetime import datetime, timedelta
+from typing import Optional
 import copy
 
 # Samplewise Domain Dictionary Object
@@ -66,7 +189,7 @@ def validity(value:float, upper:float, lower:float):
         return False
     return True
 
-def frequency(current_time:datetime, previous_time, tolerance:float):
+def frequency(current_time:datetime, previous_time: Optional[datetime] = None, tolerance: Optional[float] = None):
     """Function that determines the frequency of the current sample/row by checking if the timedelta between the current timestamp and the previous timestamp is within the expected frequency.
    
     Args: 
@@ -114,11 +237,11 @@ def completeness(curve_frequencies:list):
             raise ValueError('Only pass lists with bool data')
     return True
 
-def uniqueness(current:float, previous=0.0, stationary=False, on_surface=False):
+def uniqueness(current:float, previous: Optional[float] = None, stationary:bool=False, on_surface:bool=False):
     """Function that determines the uniqueness of a sample/row by comparing the current and previous curve values and ensuring they are not the same.
     Args:
         current (float): Current curve value to be checked against "prev".
-        previous (float or None): Previous curve value to be checked against "curr" or None in 1st sample case (ie. "dq.uniqueness(12.4)").
+        previous (float - OPTIONAL): Previous curve value to be checked against "curr" or None in 1st sample case (ie. "dq.uniqueness(12.4)").
         stationary (bool - OPTIONAL): Stationary rig status, defaulted to False.
         on_surface (bool - OPTIONAL): On surface rig status, defaulted to False.
     Raises: 
@@ -134,15 +257,15 @@ def uniqueness(current:float, previous=0.0, stationary=False, on_surface=False):
             if type(current) is float and type(previous) is float:
                 if current == previous:
                     return False
-            elif type(current) is float and type(previous) is None or type(current) is float and previous == 0.0:
+            elif type(current) is float and previous is None:
                 return True
             else:
-                raise TypeError('curr/prev must be float values, prev is OPTIONAL(can be None)')
+                raise TypeError('curr/prev must be float values, prev is OPTIONAL(can be None) c: ' + str(type(current)) + ' p: ' + str(type(previous)))
     else:
         raise TypeError('rig status (OPTIONAL)arguments must be bool values')
     return True
 
-def consistency(curve=float, consistency_curve=float):
+def consistency(curve:float, consistency_curve:float):
     """Function that determines the consistency of a sample/row by comparing the curve values from different logs at the same index/row.
     
     Args: 
@@ -160,7 +283,7 @@ def consistency(curve=float, consistency_curve=float):
         return False
     return True
 
-def accuracy(value: float, value_check:float, tolerance=0.0001):
+def accuracy(value: float, value_check:float, tolerance:float=0.0001):
     """Function that determines the accuracy of a sample/row by ensuring that the delta of value and value_check is <= tolerance (set by user, or 0.0001 when not specified).
     
     Args: 
@@ -210,7 +333,12 @@ def check_stationary(s_domain: dict):
     
     if required:
         # Stationary rule logic 
-        if s_domain[CURVE_BIT_DEPTH][VALUE_CURRENT] > s_domain[CURVE_BIT_DEPTH][VALUE_ON_SURFACE_THRESH] and s_domain[CURVE_RPM][VALUE] < s_domain[CURVE_RPM][VALUE_THRESH] and s_domain[CURVE_SPP][VALUE] < s_domain[CURVE_SPP][VALUE_THRESH] and s_domain[CURVE_HOOKLOAD][VALUE] >= s_domain[CURVE_HOOKLOAD][VALUE_THRESH] and accuracy(s_domain[CURVE_BLOCK_POSITION][VALUE_CURRENT], s_domain[CURVE_BLOCK_POSITION][VALUE_PREVIOUS], s_domain[CURVE_BLOCK_POSITION][VALUE_BPOS_DELTA_THRESH]) and accuracy(s_domain[CURVE_BIT_DEPTH][VALUE_CURRENT], s_domain[CURVE_BIT_DEPTH][VALUE_PREVIOUS], s_domain[CURVE_BIT_DEPTH][VALUE_BITMOVEMENT_THRESH]):
+        if (s_domain[CURVE_BIT_DEPTH][VALUE_CURRENT] > s_domain[CURVE_BIT_DEPTH][VALUE_ON_SURFACE_THRESH] 
+            and s_domain[CURVE_RPM][VALUE] < s_domain[CURVE_RPM][VALUE_THRESH] 
+            and s_domain[CURVE_SPP][VALUE] < s_domain[CURVE_SPP][VALUE_THRESH] 
+            and s_domain[CURVE_HOOKLOAD][VALUE] >= s_domain[CURVE_HOOKLOAD][VALUE_THRESH] 
+            and accuracy(s_domain[CURVE_BLOCK_POSITION][VALUE_CURRENT], s_domain[CURVE_BLOCK_POSITION][VALUE_PREVIOUS], s_domain[CURVE_BLOCK_POSITION][VALUE_BPOS_DELTA_THRESH]) 
+            and accuracy(s_domain[CURVE_BIT_DEPTH][VALUE_CURRENT], s_domain[CURVE_BIT_DEPTH][VALUE_PREVIOUS], s_domain[CURVE_BIT_DEPTH][VALUE_BITMOVEMENT_THRESH])):
             return True
     return False
 
@@ -244,7 +372,7 @@ def check_surface(s_domain: dict):
     return True
 
 # Score Calculation Functions
-def dim_score(dimension_col:list):
+def dim_score(dimension_col: list):
     """Function that calculates the score of a curve's dimension.
     Args:
         dimension_col (list): Dimension Column values generated using the dq_dimension curve level functions.

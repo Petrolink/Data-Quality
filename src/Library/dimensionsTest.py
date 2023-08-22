@@ -124,7 +124,7 @@ class Testdq_dimensions(unittest.TestCase):
         # Ensuring frequency() returns false when the timedelta between current and previous is greater than of the expected frequency.
         self.assertFalse(dq_dimensions.frequency(self.current, self.badprev, 1.1))
         # Ensuring frequency() returns false in a 1st sample/row case.
-        self.assertFalse(dq_dimensions.frequency(self.current, None, 1.1))
+        self.assertFalse(dq_dimensions.frequency(self.current))
 
     def test_completeness(self):
         """Testing completeness() funciton in dq_dimensions.py that takes in an list of all curves' frequency values for the current log."""
