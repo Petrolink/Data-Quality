@@ -1,5 +1,4 @@
 #Enter Configurations for curve values you would like to analyze
-#TODO Add units config and explain in read me that the runner assumes that the units are configed and not written into title.
 Curve_configs:
   BPOS:
     Dtype: float

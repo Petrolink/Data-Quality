@@ -10,9 +10,8 @@ There are two python.py programs/scripts that make up the source code for the py
 2. [Dimensions of Data Quality](#dimensions-of-data-quality)
 3. [Directory Guide](#directory-guide)
 4. [Installation and Setup](#installation-and-setup)
-5. [How To Run](#how-to-run)
-6. [Outputs Explained](#outputs-explained)
-7. [Future Steps](#future-steps)
+5. [Outputs Explained](#outputs-explained)
+6. [Future Steps](#future-steps)
 
 ## What is Data Quality
 Data can be defined as factual information in digital form produced by a sensing device which is used as a basis for reasoning, discussion, or calculation.  As this data becomes or is becoming the integral part of day to day operation, it is very important to determine and report the quality of such data to customers which rely on the data to make engineering and business decisions. 
@@ -54,14 +53,9 @@ Output directory: Location of the Data Quality Algorithm's output.
 3. Open command prompt
     - Enter "pip install pandas" 
     - Enter "pip install pyyaml"
+    - Enter "pip install [insert git link here]"
 4. Place static .csv data to be analyzed into the "Input" directory 
     - Please ensure to provide a consistency check file if calculating consitency
-5. Update the DataFile and CheckFile(for consistency check) "General_configs" fields in the runner's config.yaml file with the respective input file names
-
-## How To Run
-1. Update the runner configurations in config.yaml using the input data file accordingly, click [here]() for instructions.
-2. Run the (.py)file/executable.
-3. Save desired Outputs outside the downloaded repository as the runner will overwrite all output each time it executes.
 
 ## Outputs Explained
 The python Data Quality Algorithm produces three types of output: 

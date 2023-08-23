@@ -13,9 +13,7 @@ DESCRIPTION
     This Module can be installed and imported by any python developer that wishes to write their own runner/parser/script/etc. that utilizes our data quality logic to calculate and use
     dimension data to produce statistics such as data quality.
 
-    Copyright (c) Petrolink. All Rights Reserved.
-    Licensed under the <license name here>
-    See license.txt for details.
+    Copyright © 2023 Petrolink International Limited. All rights reserved.
 
     See [insert git link] for complete documentation.
 
