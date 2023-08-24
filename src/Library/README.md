@@ -175,9 +175,8 @@ This library/module has a Unittest that contains unittesting suites for every fu
 
 ### How to Run UnitTest
 1. Download the dimensionsTest.py file
-2. Open file in preferred IDE
-3. Navigate to the directory that contains the test using console/terminal.
-4. Enter 'dimensionsTest.py' 
+3. Navigate to the directory that contains the test using cmd/terminal/IDE.
+4. Enter 'Python dimensionsTest.py' 
 
 ### Interpreting Results 
 After running the unittests you will either recieve an "OK" message which is synonymous to passing.

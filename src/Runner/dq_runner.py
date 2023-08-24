@@ -11,8 +11,13 @@ sys.path.append(os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '
 import dq_dimensions as dq
 
 
-def yaml_loader(filepath):
-    """Function that Loads a yaml file"""
+def yaml_loader(filepath: str):
+    """Function that Loads a yaml file
+    Args: 
+        filepath (str): path to yaml configuration file.
+    Returns:
+        The Loaded yaml config file as a dictionary.
+    """
     with open(os.path.join(sys.path[0], filepath), 'r') as file_descriptor:
         data = yaml.load(file_descriptor, Loader=yaml.Loader)
     return data
@@ -141,7 +146,7 @@ def createDimensions(dataframe:pd.DataFrame):
             #Checking if the column(curve) is listed in Accuracy_configs in config.yaml
             if column in AccConfigs['Curve']:
                 accuracy = True
-            # Arrays used to record dimension values for each curve
+            # Lists used to record dimension values for each curve
             val = []
             freq = []
             uniq = [] 
@@ -522,6 +527,7 @@ def main():
     print('Hourly scores calculated.')
     dailyscores = aggScores(data, 'daily')
     print('Daily scores calculated.')
+    print('Calculating Overall Scores...')
     overall = createOverall(datascores)
     print('Overall DQ calculated.')
     hroverall = aggOverall(hrscores)
