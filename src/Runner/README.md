@@ -130,7 +130,7 @@ The Data Quality Runner only utilizes 1 object.
 **calcOverallDQ(dataframe, hourly, hour, testing)**
 
 ## Running Unit Tests
-This runner has a Unittest that contains unittesting suites for every function in the runner and the imported dq_dimensions module. These unittests can be run to debug any issues you may have when using the runner within an avg of 2 minutes. Any issues that are encountered that are not discovered by the unitests should be submitted to developers to be resolved. 
+This runner has a Unittest that contains unittesting suites for every function in the runner and the imported dq_dimensions module. These unittests can be run to debug any issues you may have when using the runner within an avg of 2 minutes. Any issues that are encountered that are not discaovered by the unitests should be submitted to developers to be resolved. 
 
 ### How to Run UnitTest
 1. Download the dq_unittest.py file
