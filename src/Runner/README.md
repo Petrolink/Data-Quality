@@ -1,5 +1,5 @@
 # Petrolink Data Quality Algorithm Script/Runner
-This Data Quality Algorithm "Runner" is called a runner as it is the script that "runs" the recieved user input through the Data Quality Algorithm and produces output. The runner performs a data quality analysis by manipulating the input data recieved with the configurations set by users in the config.yaml file as well as functions imported from Petrolink's [dq_dimensions python module](../Library/README.md). A module that includes the dimension and calculation logic necessary to produce Data Quality statistics/scores.
+This Data Quality Algorithm "Runner" is called a runner as it is the script that "runs" the recieved user input through the Data Quality Algorithm and produces output. The runner performs a data quality analysis by manipulating the input data recieved with the configurations set by users in the config.yaml file as well as functions imported from Petrolink's [dq_dimensions python module](../Library). A module that includes the dimension and calculation logic necessary to produce Data Quality statistics/scores.
 
 ## Table of Contents
 

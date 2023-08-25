@@ -3,7 +3,7 @@ This DataQuality Dimension python library/module was created with the intent to 
 
 This module can be installed and imported by any python developer that wishes to write their own runner/parser/etc. that utilizes our data quality logic to calculate and use dimension data to produce statistics such as data quality.
 
-To view "help" for this module ensure you have the [Library directory]() installed. Open a terminal/cmd and navigate to the library directory and enter the following.
+To view "help" for this module ensure you have the [Data-Quality Repo](../..) locally installed. Open a terminal/cmd and navigate to the library directory and enter the following.
 
 ```
 C:Library> python

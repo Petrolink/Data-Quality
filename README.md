@@ -40,8 +40,8 @@ The client should agree to the adopted quality rules with which the data will be
 Input directory: Where users should put their .csv data that they wish to perform a Data Qulity analysis on.
 
 Src directory: Location of the Data Quality Algorithm's source code.
-  - Runner directory: Location of the executable runner's source code, configurations, unittesting suite, and [documentation](src/Runner/README.md).
-  - Library directory: Location of the importable dimension library's source code, unittesting suite, and [documentation](src/Library/README.md).
+  - Runner directory: Location of the executable runner's source code, configurations, unittesting suite, and [documentation](src/Runner).
+  - Library directory: Location of the importable dimension library's source code, unittesting suite, and [documentation](src/Library).
 
 Output directory: Location of the Data Quality Algorithm's output.
 
