@@ -345,13 +345,13 @@ def aggScores(dataframe:pd.DataFrame, aggType:str):
         if index == 0:
             aggStart = timeStr(row.at['Time'])
 
-        # Checking if an hour of data has been captured.
+        # Checking if an agg(hour/day) of data has been captured.
         if currtime - aggStart >= agg:
             currscore = calcScores(aggData)
             currscore.name = str(aggStart)
-            # Resetting hrstart.
+            # Resetting aggstart.
             aggStart = currtime
-            # Concatenating hourly scores to hrScores dataframe and reseting the hourly dataframe.
+            # Concatenating aggregate scores to hrScores dataframe and reseting the agg dataframe.
             aggScores = pd.concat([aggScores, currscore.to_frame()], axis=1)
             aggData = pd.DataFrame()
         else:

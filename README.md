@@ -53,7 +53,7 @@ Output directory: Location of the Data Quality Algorithm's output.
 3. Open command prompt
     - Enter "pip install pandas" 
     - Enter "pip install pyyaml"
-    - Enter "pip install [insert git link here]"
+    - Enter "pip install git+"
 4. Place static .csv data to be analyzed into the "Input" directory 
     - Please ensure to provide a consistency check file if calculating consitency
 
@@ -65,7 +65,7 @@ The python Data Quality Algorithm produces three types of output:
 
 **curve_dimData Output** - Includes curvewise dimension data for each curve for each sample in the input file, as well as the curvewise rigstatus values when CheckRigStatus config is enabled. 
 
-### 2. scores - for each aggregation(hourly/daily/overall)
+### 2. score outputs - for each aggregation(hourly/daily/overall)
 
 ![Hourly Scores Output](doc_images/image-3.png)     
 **Hourly Scores Output** - Includes the scores for each curves set of dimensions for every hour within the data set.
@@ -77,7 +77,7 @@ The python Data Quality Algorithm produces three types of output:
 
 **Overall Scores Output** - Includes the scores for each curves set of dimensions for the entire dataset.
 
-### 3. overall output - for each aggregation(hourly/daily/overall)
+### 3. overall outputs - for each aggregation(hourly/daily/overall)
 
 ![Hourly Overall Output](doc_images/image-5.png)
 
