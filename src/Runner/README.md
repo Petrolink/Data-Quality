@@ -1,10 +1,10 @@
 # Petrolink Data Quality Algorithm Script/Runner
-This Data Quality Algorithm "Runner" is called a runner as it is the script that "runs" the recieved user input through the Data Quality Algorithm and produces output. The runner performs a data quality analysis by manipulating the input data recieved with the configurations set by users in the config.yaml file as well as functions imported from Petrolink's [dq_dimensions python module](../Library). A module that includes the dimension and calculation logic necessary to produce Data Quality statistics/scores.
+This Data Quality Algorithm "Runner" is called a runner as it is the script that "runs" the recieved user input through the Data Quality Algorithm and produces output. The runner performs a data quality analysis by manipulating the input data recieved with the configurations set by users in the config.yaml file as well as functions imported from Petrolink's [dq_dimensions python module](../dq_dimensions). A module that includes the dimension and calculation logic necessary to produce Data Quality statistics/scores.
 
 ## Table of Contents
 
 1. [Running](#running)
-2. [Input](#input)
+2. [Accepted Input](#accpted-input)
 3. [Functionality](#functionality)
 4. [Data Manipulation Processes](#data-manipulation-processes)
 5. [Assumptions](#assumptions)
@@ -26,7 +26,8 @@ The Runner is expecting numerical .csv input, other file formats are not accepte
 
 ![Input Example](../../doc_images/image-8.png)
 
- - Time Column should be named "Time" and follow the same time format. 
+ - Time Column should be named "Time" and follow the same time format:
+    - '2023-07-28T05:00:00.0000000Z'
  - Curve Columns names should be unitless
 
 ## Functionality
@@ -118,21 +119,149 @@ The fourth and final data maniuplation processs the runner "runs" the input data
     8. Return the overall output dataframe for the dataset.
 
 ## Assumptions
-1. Assuming the curves configured under the Curve_configs within config.yaml are identical to the corresponding curve headers within the input DataFile.csv.
+1. Assuming the curves configured under the Curve_configs within 'config.yaml' are identical to the corresponding curve headers within the input DataFile.csv.
 2. Assuming input data is formatted with a "Time" column and unitless curve columns. [see example](#accpted-input)
-3. 
+3. Assuming there is an input file to be used as a consistency check log if CalcConsistency configuration is True.
+4. Assuming the consistency check log is the same size as the input log.
+5. Assuming Bit Depth, Block Position, SPP, RPM, and Hookload are constant curves in input.csv.
+6. Assuming there is no domain rule for a curve if a Curve_configs rule configuration is empty.
+7. Assuming accuracy is only being calculated on BitDepth.
+8. Assuming there is a Bit Depth and Block Position curve in the input when calculating accuracy.
+9. Assuming domain rules for the constant curves are configured under Rule_thresholds in 'config.yaml'
+
 
 ## Configurations
-The Data Quality Runner is dependent upon its user configurations failure to follow the following instructions could lead to errors. There are 4 configuration fields in the runners 'config.yaml' file.
+The Data Quality Runner is dependent upon its user configurations failure to follow the instructions below could lead to errors. There are 5 main configuration fields in the runners 'config.yaml' file.
 
 ### 1. General_configs
+This configuration field is where users can toggle runner functionalities and provide the filenames of input users wish to run a data quality analysis on.
+```
+General_configs:
+  DataFile: 'filename.csv'
+  CheckFile: 'filename.csv'
+  CalcConsistency: True/False
+  CheckRigStatuses: True/False
+  freqTol: 5.0
+```
+ - **DataFile**
+    - Specify the file name (within apostraphes '') of the desired input in the "Input" repo directory that you wish to run a data quality anlysis on.
+    - ie. 'yourfile.csv'
+- **CheckFile**
+    - Specify the file name (within apostraphes '') of the desired input in the "Input" repo directory that you wish to use as a consistency check log.
+    - ie. 'yourfile.csv'
+- **CalcConsistency**
+    - Specify True/False to toggle consistency check functionality
+    - If False, Data Quality will be calculated without a consistency dimension
+- **CheckRigStatuses**
+    - Specify True/False to toggle Rig Status Check Functionality (Used when calculating the Uniqueness dimension)
 
 ### 2. Curve_configs
+This configuration field is where users are to specify configurations for each curve in their input dataset. Failure to configure all curves within input.csv log will lead to inaccurate Data Quality statistics as unconfigured curves will not be used.
+
+Each Curve Configuration under Curve_configs should be listed sequentially and follow the format below:
+```
+  Name:
+    upLim: float
+    lowLim: float
+    rigStatuses: (all/stationary/surface)
+    rule: (Rule_Threshold configuration name/header)
+```
+ - **Name**
+    - Specify the name of the curve
+    - Names should be identical to the curve names/headers in the input log
+- **upLim**
+    - Specify the upper limit for the curve
+    - Must be a float value (ie. 5.0)
+- **lowLim**
+    - Specify the lower limit for the curve
+    - Must be a float value (ie. 5.0)
+- **rigStatuses**
+    - Specify the rigStatus to check when calculating the curve's uniqueness
+    - Options:
+        - all (checks all rig statuses)
+        - stationary (only checks stationary)
+        - surface (only checks on-surface)
+- **rule**
+    - Specify the rule(s) for the curve
+    - A rule is one of the Rule_threshold configuration names (ie. Bit_Move)
+    - Must be an empty rule, single rule, or a list of rules(only for bit depth) 
+        ```
+        rule: Bit_Move
+            or
+        DBTM:
+          upLim: 6000.0
+          lowLim: -0.0001
+          rigStatuses: all
+          rule: 
+            - OnSurface
+            - Bit_Move
+        ```
 
 ### 3. Rule_thresholds
+This configuration field is where users will set the "Domain Rule Thresholds" to be used by the runner.
+```
+Rule_thresholds:
+  OnSurface: float
+  RPM: float
+  SPP: float
+  Hookload: float
+  Delta_BPOS: float
+  Bit_Move: float
+```
+ - **OnSurface**
+    - Specify the OnSurface threshold to be used for bit depth
+    - Must be a float value (ie. 5.0)
+ - **RPM**
+    - Specify the RPM Threshold
+    - Must be a float value (ie. 5.0)
+- **Hookload**
+    - Specify the SPP Threshold
+    - Must be a float value (ie. 5.0)
+- **Delta_BPOS**
+    - Specify the Block Position delta threshold to be used for accuracy and rig status checks 
+    - Must be a float value (ie. 5.0) 
+- **Bit_Move**
+    - Specify the bit movement threshold to be used for bit depth
+    - Must be a float value (ie. 5.0)
 
-### 4. Dimension_weights
+### 4. Accuracy_config
+This configuration field is where the user will provide a curve name for bit depth for the runner to use when calculating accuracy.
+```
+Accuracy_configs:
+  Curve: Bit Depth Curve Name (ie. DBTM)
+```
+ - **Curve**
+    - Specify the Bit Depth Curve name to be used for accuracy
 
+### 5. Dimension_weights
+This configuration filed is where the user will provide the dimension weightages to be used for calculating the Overall Data Quality Score.
+```
+Dimension_weights:
+  Validity: int
+  Frequency: int
+  Consistency: int
+  Completeness: int
+  Uniqueness: int
+  Accuracy: int
+```
+- **Validity**
+    - Specify the weight this dimension holds for Data Quality.
+    - Must be an int (ie. 5)
+- **Frequency**
+    - Specify the weight this dimension holds for Data Quality.
+    - Must be an int (ie. 5)
+- **Consistency**
+    - Specify the weight this dimension holds for Data Quality.
+    - Must be an int (ie. 5)
+- **Completeness**
+    - Specify the weight this dimension holds for Data Quality.
+    - Must be an int (ie. 5)
+- **Uniqueness**
+    - Specify the weight this dimension holds for Data Quality.
+    - Must be an int (ie. 5)
+- **Accuracy**
+    - Specify the weight this dimension holds for Data Quality.
+    - Must be an int (ie. 5)
 
 ## Objects
 The Data Quality Runner only utilizes 1 object.
@@ -144,30 +273,56 @@ The Data Quality Runner only utilizes 1 object.
 ## Functions
 
 **yaml_loader(filepath)**
+ - Function that Loads a yaml file.
+ - Returns the Loaded yaml config file as a dictionary.
 
 **timeStr(string)**
+ - Function that takes in a string and returns it as a datetime.
+ - Returns a datetime value created from the timestamp string.
 
 **get_Configs(cconfigType, testing)**
+ - Function that retrieves the type of configuration and returns them as a iterable dictionary.
+ - Returns the requested configuration field.
 
 **fill_dataframe(itype, testing)**
+ - Function that reads in a .csv file and returns a mutable dataframe filled with the .csv data.
+ - Retruns a pandas dataframe with the input .csv data.
 
 **createDimensions(dataframe)**
+ - Void function that adds and calculates curve dimension columns in the dataframe passed in using the configurations set by user.
 
 **createSDomains(dataframe, testing)**
+ - Function that returns a dictionary filled with sampleDomains for each row in the dataframe passed by using the sampleDomains() function.
+ - Returns dictionary of sDomain dictionaries for every row in the input data.
 
 **fill_sampleDomain(cSample, pSample)**
+ - Function that loads an empty sampleDomain dictionary template from dq.dimensions with data to be passed to checker functions in dq.dimensions using a sample(row of data) from a dataset.
+ - Returns a sampleDomain dictionary loaded with data
 
 **insertDims(dataframe, curveCol, dims)**
+ - Void Function that aids createDimensions by inserting/formatting the calculated dimensions lists into the curveDimension Dataframe (data in main). 
 
 **aggScores(dataframe, aggType)**
+ - Function that calculates and records the Dimension scores for each curve for each [TYPE OF AGGREGATION] by using the calcScores() function for each (hour/day) of data.
+ - Returns a pandas dataframe that includes the dimension scores for each curve for each [TYPE OF AGGREGATION REQUESTED].
 
-**calcSccores(dataframe)**
+**calcScores(dataframe)**
+ - Function that calculates the Dimension scores for each curve using the dimScore function in the dq_dimensions lib.
+ - Returns a pandas series that includes the dimension scores for each curve.
+
+**aggOverall(dataframe)**
+ - Function that creates the aggregation outputs and calculates the aggregation overall scores for the input dataset using the createOverall Function for each agg(hour/day) of scores.
+ - Returns a pandas dataframe filled with overall aggregate output
 
 **createOverall(series, hourly)**
+ - Function that creates the overall output and calculates the overall scores for the input dataset using the OverallDim() function in the dq_dimensions lib.
+ - Returns a pandas dataframe that includes the overall dimension scores and their corresponding weights set by user in config.yaml
 
 **overallFormat(outData, dArr, dim, hourly, hour)**
+ - Void Function that aids in formatting the DQout output dataframe in the createOverall() Function.
 
 **calcOverallDQ(dataframe, hourly, hour, testing)**
+ - Void Function that calculates the Overall DQ score for a dataset using the calcWeight and OverallDQ functions in the dq_dimensions lib.
 
 ## Running Unit Tests
 This runner has a Unittest that contains unittesting suites for every function in the runner and the imported dq_dimensions module. These unittests can be run to debug any issues you may have when using the runner within an avg of 2 minutes. Any issues that are encountered that are not discaovered by the unitests should be submitted to developers to be resolved. 
@@ -195,10 +350,16 @@ ERROR: test_overall_dq (__main__.Testdq_dimensions.test_overall_dq)
 Testing overall_dq() Function in dq_dimensions that takes in a list containing weighted dimension scores of a dataset and returns the Overall DQ Score of said dataset
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "c:\Users\gonzaleza\OneDrive - Petrolink Technical Services\DataQuality_Algorithim\Src\Library\dimensionsTest.py", line 280, in test_overall_dq
+  File "c:\Users\gonzaleza\OneDrive - Petrolink Technical Services\DataQuality_Algorithim\Src\dq_dimensions\dimensionsTest.py", line 280, in test_overall_dq
     self.assertRaises(TypeError, dq_dimensions.overall_dq, 'Not a list')
   File "C:\Users\gonzaleza\AppData\Local\Programs\Python\Python311\Lib\unittest\case.py", line 766, in assertRaises
     return context.handle('assertRaises', args, kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 FAILED (errors=1)
 ```
+## Future Steps
+1. Tackle and minimize assumptions
+2. Improve efficiency of algorithm
+3. Correct Coding Conventions, update to PEP python standards
+4. Change FreqTol from being a General_config to a Curve_config for each individual curve
+5. Accept Real Time Data

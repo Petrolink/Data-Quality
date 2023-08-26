@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 # Temporary fix that allows dimensions lib to be imported from other dir while the lib is not registered with pip
 # According to https://www.geeksforgeeks.org/python-import-module-outside-directory/
 import sys
-sys.path.append(os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'Library')))
+sys.path.append(os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'dq_dimensions')))
 import dq_dimensions as dq
 
 
@@ -73,7 +73,7 @@ def get_Configs(configType:str, testing=False):
             raise Exception('The value passed was an invalid config type key. Please pass a valid key: "curve"')
 
 def fill_dataframe(itype:str, testing=False):
-    """Reads in a .csv file and returns a mutable dataframe filled with .csv data.
+    """Function that reads in a .csv file and returns a mutable dataframe filled with the .csv data.
     Args: 
         itype (str): An input type key word (input or check)
         testing (bool): A testing toggle used only in unittesting suite.
@@ -111,7 +111,7 @@ def fill_dataframe(itype:str, testing=False):
     return df
 
 def createDimensions(dataframe:pd.DataFrame):
-    """Void function that adds and calculates dimension columns in the dataframe passed in using the configurations set by user.
+    """Void function that adds and calculates curve dimension columns in the dataframe passed in using the configurations set by user.
     Args:
         dataframe (pd): Pandas dataframe with input .csv data
     Raises:
@@ -412,7 +412,7 @@ def aggOverall(dataframe: pd.DataFrame):
     return aggOut
 
 def createOverall(series:pd.Series(), hourly=False):
-    """Function that creates the overall aggregation output and calculates the overall scores for the input dataset using the OverallDim() function in the dq_dimensions lib.
+    """Function that creates the overall output and calculates the overall scores for the input dataset using the OverallDim() function in the dq_dimensions lib.
     
     Args:
         dataframe (pd.Series): Pandas series that includes the dimension scores for each curve.

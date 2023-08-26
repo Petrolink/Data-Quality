@@ -3,7 +3,7 @@ This "DataQuality_Algorithm" repository is the home of Petrolink's "open sourced
 
 In this repository there are three main directories, these are "Input", "src", and "Output. The "Input" directory is self explanatory as that is where users are to put static ".csv" data they would like to run a DataQuality analysis on. The "src" directory is where users will find the source code that drives the Data Quality algorithm. The "Output" directory just as the "Input" is self explanatory as that is where users will can find the data quality output produced by the Data Quality Algorithm after execution.
 
-There are two python.py programs/scripts that make up the source code for the python implementaion of the Data Quality Algorithm. These are the runner (dq_runner.py) and the library (dq_dimensions.py). The runner is an executable script where the user input is loaded into a dataframe and manipulated using functions from the imported library to produce Data Quality output. The library is where the dimension calculation functions for the algorithm are located. 
+There is one python.py program/script that make up the source code for the python implementaion of the Data Quality Algorithm and one package. These are the runner (dq_runner.py) and the module/package (dq_dimensions). The runner is an executable script where the user input is loaded into a dataframe and manipulated using functions from the module to produce Data Quality output. The module is where the dimension calculation functions for the algorithm are located. 
 
 ## Table of Contents
 1. [What is DataQuality](#what-is-data-quality)
@@ -41,13 +41,13 @@ Input directory: Where users should put their .csv data that they wish to perfor
 
 Src directory: Location of the Data Quality Algorithm's source code.
   - Runner directory: Location of the executable runner's source code, configurations, unittesting suite, and [documentation](src/Runner).
-  - Library directory: Location of the importable dimension library's source code, unittesting suite, and [documentation](src/Library).
+  - dq_dimensions package directory: Location of the importable dimension module's source code, unittesting suite, and [documentation](scr/dq_dimensions).
 
 Output directory: Location of the Data Quality Algorithm's output.
 
 
 ## Installation and Setup
-1. Download the [DataQuality Algorithm Repo]()
+1. Download the [DataQuality Algorithm Repo](https://github.com/Petrolink/Data-Quality/tree/master)
 2. Install latest Python3
     - make sure to select "add Python to PATH"
 3. Open command prompt
@@ -95,3 +95,4 @@ The python Data Quality Algorithm produces three types of output:
 1. Accept real-time dynamic data as well as static data.
 2. Improve runner efficiency (run-time).
 3. Add weekly, monthly, and yearly aggregations.
+4. Create flow chart diagram of the algorithm's steps in the runner.

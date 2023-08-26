@@ -1,13 +1,17 @@
-#Enter Configurations for curve values you would like to analyze
+# dq_runner.py Configurations, for instructions please reference Runner README.md
+General_configs:
+  DataFile: 'SampleDate_Time2.csv'
+  CheckFile: 'consistency_check.csv'
+  CalcConsistency: True
+  CheckRigStatuses: True
+  freqTol: 5.0
 Curve_configs:
   BPOS:
-    Dtype: float
     upLim: 40.0
     lowLim: -0.0001
     rigStatuses: all
     rule: Delta_BPOS
   DBTM:
-    Dtype: float
     upLim: 6000.0
     lowLim: -0.0001
     rigStatuses: all
@@ -15,55 +19,46 @@ Curve_configs:
       - OnSurface
       - Bit_Move
   DMEA:
-    Dtype: float
     upLim: 6000.0
     lowLim: -0.0001
     rigStatuses: all
     rule:
   HKLA:
-    Dtype: float
     upLim: 500.0
     lowLim: -0.0001
     rigStatuses: all
     rule: Hookload
   MFIA:
-    Dtype: float
     upLim: 500.0
     lowLim: -0.0001
     rigStatuses: all
     rule:
   RPMA:
-    Dtype: float
     upLim: 300.0
     lowLim: -0.0001
     rigStatuses: all
     rule: RPM
   SPPA:
-    Dtype: float
     upLim: 6000.0
     lowLim: -0.0001
     rigStatuses: all
     rule: SPP
   TQA:
-    Dtype: float
     upLim: 10000.0
     lowLim: -0.0001
     rigStatuses: all
     rule:
   TV01:
-    Dtype: float
     upLim: 200.0
     lowLim: -0.0001
     rigStatuses: all
     rule:
   TVT:
-    Dtype: float
     upLim: 500.0
     lowLim: -0.0001
     rigStatuses: all
     rule:
   WOBA:
-    Dtype: float
     upLim: 500.0
     lowLim: -0.0001
     rigStatuses: stationary
@@ -75,12 +70,6 @@ Rule_thresholds:
   Hookload: 100.0
   Delta_BPOS: 0.1
   Bit_Move: 0.2
-General_configs:
-  DataFile: 'SampleDate_Time2.csv'
-  CheckFile: 'consistency_check.csv'
-  CalcConsistency: True
-  CheckRigStatuses: True
-  freqTol: 5.0
 Accuracy_configs:
   Curve: DBTM
 Dimension_weights:

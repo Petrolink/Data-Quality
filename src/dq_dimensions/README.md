@@ -1,12 +1,12 @@
-# PetroLink DataQuality Dimensions Python Library/Module
-This DataQuality Dimension python library/module was created with the intent to open source callable curve-level dimension functions that implement the Petrolink data quality algorithm's dimension logic, allowing for a more direct representation of how Petrolink determines their dimension values. 
+# PetroLink DataQuality Dimensions Python Module
+This DataQuality Dimension python module was created with the intent to open source callable curve-level dimension functions that implement the Petrolink data quality algorithm's dimension logic, allowing for a more direct representation of how Petrolink determines their dimension values. 
 
 This module can be installed and imported by any python developer that wishes to write their own runner/parser/etc. that utilizes our data quality logic to calculate and use dimension data to produce statistics such as data quality.
 
-To view "help" for this module ensure you have the [Data-Quality Repo](../..) locally installed. Open a terminal/cmd and navigate to the library directory and enter the following.
+To view "help" for this module ensure you have the [Data-Quality Repo](../..) locally installed. Open a terminal/cmd and navigate to the dq_dimensions package directory and enter the following.
 
 ```
-C:Library> python
+C:dq_dimensions> python
 >>> help('dq_dimensions')
 ```
 
@@ -51,7 +51,7 @@ The client should agree to the adopted quality rules with which the data will be
     - "import dq_dimensions as dq"
 
 ## Objects
-The Data Quality Dimensions Library includes one dictionary object. 
+The Data Quality Dimensions module includes one dictionary object. 
 
 **SampleDomain**
  - Dictionary object that holds the curve value(s) and threshold information required to perfrom rig status checks for each sample within a data set. 
@@ -64,7 +64,7 @@ The Data Quality Dimensions Library includes one dictionary object.
   - The Bit Depth and Block Position curve fields require their current value, previous value, and specific domain threshold(s) as compared to the rest of the curve fields that only require a value (current) and their corresponding curve domain threshold.
 
 ## Constants
-The Data Quality Dimensions Library includes four types of constants. Three of which are used as accessors to fields or values of the SampleDomain dict object.
+The Data Quality Dimensions module includes four types of constants. Three of which are used as accessors to fields or values of the SampleDomain dict object.
 
 ### 1. SampleDomain Instance Constant
 
@@ -114,7 +114,7 @@ The Data Quality Dimensions Library includes four types of constants. Three of w
  - Bit Depth Movement Domain Threshold.
 
 ## Functions
-The Data Quality Dimensions Library includes three types of functions.
+The Data Quality Dimensions module includes three types of functions.
 
 ### 1. Curve Level Dimension Functions
 
@@ -171,7 +171,7 @@ The Data Quality Dimensions Library includes three types of functions.
  - Returns the calculated Data Quality Score.
 
 ## Unit Tests
-This library/module has a Unittest that contains unittesting suites for every function that can be run to debug any issues you may have when using the library. Any issues that are encountered that are not discovered by the unitests should be submitted to developers to be resolved.
+This module has a Unittest that contains unittesting suites for every function that can be run to debug any issues you may have when using the module. Any issues that are encountered that are not discovered by the unitests should be submitted to developers to be resolved.
 
 ### How to Run UnitTest
 1. Download the dimensionsTest.py file
@@ -196,7 +196,7 @@ ERROR: test_overall_dq (__main__.Testdq_dimensions.test_overall_dq)
 Testing overall_dq() Function in dq_dimensions that takes in a list containing weighted dimension scores of a dataset and returns the Overall DQ Score of said dataset
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "c:\Users\gonzaleza\OneDrive - Petrolink Technical Services\DataQuality_Algorithim\Src\Library\dimensionsTest.py", line 280, in test_overall_dq
+  File "c:\Users\gonzaleza\OneDrive - Petrolink Technical Services\DataQuality_Algorithim\Src\dq_dimensions\dimensionsTest.py", line 280, in test_overall_dq
     self.assertRaises(TypeError, dq_dimensions.overall_dq, 'Not a list')
   File "C:\Users\gonzaleza\AppData\Local\Programs\Python\Python311\Lib\unittest\case.py", line 766, in assertRaises
     return context.handle('assertRaises', args, kwargs)
