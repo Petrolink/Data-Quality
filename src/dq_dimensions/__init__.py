@@ -15,7 +15,7 @@ DESCRIPTION
 
     Copyright © 2023 Petrolink International Limited. All rights reserved.
 
-    See [insert git link] for complete documentation.
+    See https://github.com/Petrolink/Data-Quality/tree/master/src/dq_dimensions for complete documentation.
 
 OBJECTS:
     SampleDomain
