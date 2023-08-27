@@ -4,10 +4,7 @@ import numpy as np
 import yaml
 import copy
 from datetime import datetime, timedelta
-# Temporary fix that allows dimensions lib to be imported from other dir while the lib is not registered with pip
-# According to https://www.geeksforgeeks.org/python-import-module-outside-directory/
 import sys
-sys.path.append(os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'dq_dimensions')))
 import dq_dimensions as dq
 
 
@@ -538,13 +535,14 @@ def main():
     print()
 
     print('Outputting Data...')
-    data.to_csv("Output\curve_dimData.csv")
-    datascores.to_csv("Output\scores.csv")
-    overall.to_csv("Output\overall.csv")
-    hrscores.to_csv('Output\hrscores.csv')
-    hroverall.to_csv('Output\hroverall.csv')
-    dailyscores.to_csv('Output\dailyscores.csv')
-    dailyoverall.to_csv('Output\dailyoverall.csv')
+    output = os.path.realpath(os.path.join(os.path.dirname(__file__), '..\..', 'Output'))
+    data.to_csv(output+"\curve_dimData.csv")
+    datascores.to_csv(output+"\scores.csv")
+    overall.to_csv(output+"\overall.csv")
+    hrscores.to_csv(output+"\hrscores.csv")
+    hroverall.to_csv(output+"\hroverall.csv")
+    dailyscores.to_csv(output+"\dailyscores.csv")
+    dailyoverall.to_csv(output+"\dailyoverall.csv")
     print('Done!') 
 
 if __name__ == "__main__":

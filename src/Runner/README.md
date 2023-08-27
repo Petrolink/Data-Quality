@@ -336,26 +336,27 @@ This runner has a Unittest that contains unittesting suites for every function i
 After running the unittests you will either recieve an "OK" message which is synonymous to passing.
 
 ```
-............
+.........................
 ----------------------------------------------------------------------
-Ran 12 tests in 0.002s
+Ran 25 tests in 145.844s
 
 OK
 ```
 Or a "FAILED" message similar to the following:
 ```
-.........E..
+........F................
 ======================================================================
-ERROR: test_overall_dq (__main__.Testdq_dimensions.test_overall_dq)
-Testing overall_dq() Function in dq_dimensions that takes in a list containing weighted dimension scores of a dataset and returns the Overall DQ Score of said dataset
+FAIL: test_frequency (__main__.Testdq_dimensions_runner.test_frequency)
+Testing frequency() funciton in dq_dimensions.py that takes in current and previous arguments(datetime) and determines if the time delta between them is within the expected frequency
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "c:\Users\gonzaleza\OneDrive - Petrolink Technical Services\DataQuality_Algorithim\Src\dq_dimensions\dimensionsTest.py", line 280, in test_overall_dq
-    self.assertRaises(TypeError, dq_dimensions.overall_dq, 'Not a list')
-  File "C:\Users\gonzaleza\AppData\Local\Programs\Python\Python311\Lib\unittest\case.py", line 766, in assertRaises
-    return context.handle('assertRaises', args, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FAILED (errors=1)
+  File "c:\Users\gonzaleza\OneDrive - Petrolink Technical Services\DataQuality_Algorithim\src\Runner\dq_unittest.py", line 136, in test_frequency
+    self.assertRaises(Exception, dq_dimensions.frequency, self.current, self.previous, 1)
+AssertionError: Exception not raised by frequency
+
+----------------------------------------------------------------------
+Ran 25 tests in 131.957s
+
 ```
 ## Future Steps
 1. Tackle and minimize assumptions

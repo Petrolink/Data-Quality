@@ -46,9 +46,10 @@ The client should agree to the adopted quality rules with which the data will be
 5. overall_dim() Function is assuming that the (list) argument passed in is a list containing all the calculated scores for a certain dimension in a dataset (ie. all the Frequency scores from every curve).
 
 ## How to Install and Import
-1. Open command prompt and enter "pip install dq_dimensions"
+1. Open command prompt in cwd and enter "py -m pip install "git+https://github.com/Petrolink/Data-Quality.git@master#subdirectory=src""
 2. At top of "Your.py" file use the following import statement
     - "import dq_dimensions as dq"
+3. Use functionality (ie. dq.uniqueness())
 
 ## Objects
 The Data Quality Dimensions module includes one dictionary object. 

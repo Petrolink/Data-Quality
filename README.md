@@ -53,7 +53,7 @@ Output directory: Location of the Data Quality Algorithm's output.
 3. Open command prompt
     - Enter "pip install pandas" 
     - Enter "pip install pyyaml"
-    - Enter "pip install git+"
+    - Enter "py -m pip install "git+https://github.com/Petrolink/Data-Quality.git@master#subdirectory=src""
 4. Place static .csv data to be analyzed into the "Input" directory 
     - Please ensure to provide a consistency check file if calculating consitency
 
