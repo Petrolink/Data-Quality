@@ -14,7 +14,7 @@ This Data Quality Algorithm "Runner" is called a runner as it is the script that
 8. [Running Unit Tests](#running-unit-tests)
 
 ## Running
-1. Update the runner configurations in config.yaml file (located in Runner directory) using the input data file accordingly.
+1. Update the runner [configurations](#configurations) in config.yaml file (located in Runner directory) using the input data file accordingly.
 2. Navigate to the Runner directory within a terminal/cmd
 3. Within terminal enter the following 
     - Python .\dq_runner.py
@@ -154,6 +154,9 @@ General_configs:
     - If False, Data Quality will be calculated without a consistency dimension
 - **CheckRigStatuses**
     - Specify True/False to toggle Rig Status Check Functionality (Used when calculating the Uniqueness dimension)
+- **freqTol**
+    - Specify the Frequency tolerance (in seconds) to be used when calculating frequency for dimensions.
+    - Must be a float value (ie. 5.0) 
 
 ### 2. Curve_configs
 This configuration field is where users are to specify configurations for each curve in their input dataset. Failure to configure all curves within input.csv log will lead to inaccurate Data Quality statistics as unconfigured curves will not be used.

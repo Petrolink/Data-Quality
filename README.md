@@ -1,9 +1,9 @@
 # Petrolink DataQuality Algorithm (Open-Sourced Python Implementation)
-This "DataQuality_Algorithm" repository is the home of Petrolink's "open sourced" python DataQuality algorithm.
+This Data Quality repository is the home of Petrolink's "open sourced" python DataQuality algorithm.
 
 In this repository there are three main directories, these are "Input", "src", and "Output. The "Input" directory is self explanatory as that is where users are to put static ".csv" data they would like to run a DataQuality analysis on. The "src" directory is where users will find the source code that drives the Data Quality algorithm. The "Output" directory just as the "Input" is self explanatory as that is where users will can find the data quality output produced by the Data Quality Algorithm after execution.
 
-There is one python.py program/script that make up the source code for the python implementaion of the Data Quality Algorithm and one package. These are the runner (dq_runner.py) and the module/package (dq_dimensions). The runner is an executable script where the user input is loaded into a dataframe and manipulated using functions from the module to produce Data Quality output. The module is where the dimension calculation functions for the algorithm are located. 
+There is one python program/script that makes up the source code for the python implementaion of the Data Quality Algorithm and one package. These are the runner (dq_runner.py) and the module/package (dq_dimensions). The runner is an executable script where the user input is loaded into a dataframe and manipulated using functions from the module to produce Data Quality output. The module is where the dimension calculation functions for the algorithm are located. 
 
 ## Table of Contents
 1. [What is DataQuality](#what-is-data-quality)
