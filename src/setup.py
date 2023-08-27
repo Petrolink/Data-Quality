@@ -10,6 +10,5 @@ setup(
     install_requires=[
         'datetime',
         'typing',
-        'copy',
     ],
 )
